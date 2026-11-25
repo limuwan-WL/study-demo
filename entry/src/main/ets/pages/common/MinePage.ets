@@ -434,7 +434,7 @@ export struct MinePage {
     AppStorage.setOrCreate('avatarUri', '')
     AppStorage.setOrCreate('isLogged', false)
     AppStorage.setOrCreate('regAccount', '')
-    AppStorage.setOrCreate('regPassword', '')
+    // 🌟 退出登录只清登录态，保留 lastAccount（记住我）与账号数据库中的注册记录
     AppStorage.setOrCreate('followList', [])
     AppStorage.setOrCreate('friendList', [])
     AppStorage.setOrCreate('readPostIds', [])

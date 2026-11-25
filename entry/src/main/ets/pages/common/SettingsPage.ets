@@ -5,6 +5,8 @@ import router from '@ohos.router'
 import { ThemeColor } from '../../utils/ThemeColor'
 import { Feedback } from '../../utils/Feedback'
 import { formatSize } from '../../model/ResourceModel'
+import { AccountStore } from '../../model/AccountStore'
+import { preferences } from '@kit.ArkData'
 
 type SkinMode = 'light' | 'dark' | 'system'
 
@@ -24,6 +26,9 @@ export struct SettingsPage {
   @StorageLink('pushRecharge') pushRecharge: boolean = true
   @StorageLink('pushReport') pushReport: boolean = true
   @StorageLink('networkOnline') networkOnline: boolean = true
+  // 🌟 后端服务地址：可在此修改，立即生效并持久化
+  @StorageLink('apiBaseUrl') apiBaseUrl: string = 'http://10.245.26.89:3000'
+  @State serverInput: string = ''
   @State cacheSize: string = '0 KB'
 
   aboutToAppear() {
@@ -31,7 +36,53 @@ export struct SettingsPage {
     if (AppStorage.get<number>('colorModeSetting') === 1) {
       this.skinMode = 'dark'
     }
+    this.serverInput = this.apiBaseUrl
     this.cacheSize = this.dirSize((getContext(this) as common.UIAbilityContext).cacheDir)
+  }
+
+  // 🌟 保存服务器地址：校验协议并去掉末尾斜杠，写入 AppStorage 并落盘到 preferences
+  saveServer(): void {
+    let url = this.serverInput.trim()
+    while (url.endsWith('/')) {
+      url = url.slice(0, url.length - 1)
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      Feedback.fail('地址不合法', '需以 http:// 或 https:// 开头，例如 http://10.133.82.153:3000')
+      return
+    }
+    this.apiBaseUrl = url
+    this.serverInput = url
+    // 持久化：启动时由 EntryAbility 从 app_settings 读取，避免重启后被默认值覆盖
+    const pref = preferences.getPreferencesSync(getContext(this) as common.UIAbilityContext,
+      { name: 'app_settings' })
+    pref.putSync('apiBaseUrl', url)
+    pref.flush().then(() => {
+      Feedback.success('服务地址已保存')
+    })
+  }
+
+  // 🌟 注销当前账号：二次确认后从本地账号库删除该学号/教工号，不可恢复
+  deleteAccount(): void {
+    if (this.regAccount === '') {
+      Feedback.fail('注销账号', '当前未登录')
+      return
+    }
+    let account = this.regAccount
+    Feedback.confirm('注销当前账号', `将永久删除 ${account} 的登录信息，删除后无法恢复。确定继续吗？`,
+      (): void => {
+        AccountStore.remove(account).then((ok: boolean) => {
+          if (!ok) {
+            Feedback.fail('注销账号', '删除失败，请稍后重试')
+            return
+          }
+          AppStorage.setOrCreate<string>('regAccount', '')
+          AppStorage.setOrCreate<string>('regRole', '')
+          AppStorage.setOrCreate<string>('nickname', '')
+          this.isLogged = false
+          Feedback.success('账号已注销')
+          router.replaceUrl({ url: 'pages/common/LoginPage' })
+        })
+      }, '确认注销', true)
   }
 
   // 🌟 真实计算缓存目录大小，清理时删除缓存文件（不动用户资料与笔记）
@@ -73,9 +124,6 @@ export struct SettingsPage {
 
   phoneLabel(): string {
     let phone = this.boundPhone
-    if (phone === '') {
-      phone = new RegExp('^1[3-9][0-9]{9}$').test(this.regAccount) ? this.regAccount : ''
-    }
     if (phone === '') {
       return '未绑定'
     }
@@ -254,6 +302,32 @@ export struct SettingsPage {
             this.arrowRow('隐私设置', '', (): void => this.openAccountPage('pages/common/PrivacySettingsPage'))
             this.divider()
             this.arrowRow('个人资料', '', (): void => this.openAccountPage('pages/common/ProfilePage'))
+            this.divider()
+            this.arrowRow('注销当前账号', '', (): void => this.deleteAccount())
+          }.width('92%').padding(14).backgroundColor(ThemeColor.get('card_bg')).borderRadius(14)
+
+          // 服务器（账号数据 MySQL 所在后端）
+          Column({ space: 8 }) {
+            Text('服务器').fontSize(12).fontColor(ThemeColor.get('text_hint')).width('100%')
+              .padding({ left: 4 })
+            Row({ space: 8 }) {
+              TextInput({ text: this.serverInput, placeholder: 'http://电脑IP:3000' })
+                .fontSize(13)
+                .height(40)
+                .layoutWeight(1)
+                .backgroundColor(ThemeColor.get('field_bg'))
+                .borderRadius(10)
+                .onChange((v: string) => {
+                  this.serverInput = v
+                })
+              Button('保存')
+                .fontSize(13)
+                .height(40)
+                .backgroundColor(ThemeColor.get('primary'))
+                .onClick(() => this.saveServer())
+            }.width('100%')
+            Text('后端与 MySQL 所在电脑的地址。真机改为电脑局域网 IP，模拟器可用 10.0.2.2；保存后立即生效。')
+              .fontSize(11).fontColor(ThemeColor.get('text_hint')).width('100%').padding({ left: 4 })
           }.width('92%').padding(14).backgroundColor(ThemeColor.get('card_bg')).borderRadius(14)
 
           // 关于与帮助

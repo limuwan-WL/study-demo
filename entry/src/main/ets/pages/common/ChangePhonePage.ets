@@ -46,7 +46,7 @@ export struct ChangePhonePage {
     if (this.boundPhone !== '') {
       return this.boundPhone
     }
-    return this.isValidPhone(this.regAccount) ? this.regAccount : ''
+    return this.boundPhone
   }
 
   maskPhone(phone: string): string {

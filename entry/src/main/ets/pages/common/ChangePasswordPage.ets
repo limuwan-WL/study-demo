@@ -1,7 +1,7 @@
 import router from '@ohos.router'
 import { promptAction } from '@kit.ArkUI'
 import { ThemeColor } from '../../utils/ThemeColor'
-import { AccountStore } from '../../model/AccountStore'
+import { AccountStore, AuthResult } from '../../model/AccountStore'
 
 // 🌟 密码输入过滤：与登录页保持一致，只允许字母/数字/下划线
 const PASSWORD_FILTER: string = '[A-Za-z0-9_]'
@@ -11,7 +11,6 @@ const PASSWORD_FILTER: string = '[A-Za-z0-9_]'
 export struct ChangePasswordPage {
   @StorageLink('isLogged') isLogged: boolean = false
   @StorageLink('regAccount') regAccount: string = ''
-  @StorageLink('regPassword') regPassword: string = ''
   @State oldPassword: string = ''
   @State newPassword: string = ''
   @State confirmPassword: string = ''
@@ -62,9 +61,6 @@ export struct ChangePasswordPage {
     if (oldPwd === '') {
       return '请输入旧密码'
     }
-    if (oldPwd !== this.regPassword) {
-      return '旧密码不正确'
-    }
     if (newPwd === '') {
       return '请输入新密码'
     }
@@ -94,8 +90,8 @@ export struct ChangePasswordPage {
       promptAction.showToast({ message: '请先登录后再修改密码' })
       return
     }
-    if (this.regPassword === '') {
-      promptAction.showToast({ message: '当前账号尚未设置本地密码' })
+    if (this.regAccount === '') {
+      promptAction.showToast({ message: '未获取到当前账号，请重新登录' })
       return
     }
     let err = this.validate()
@@ -104,12 +100,17 @@ export struct ChangePasswordPage {
       promptAction.showToast({ message: err })
       return
     }
-    // 🌟 修改成功：直接更新注册密码，PersistentStorage 已持久化该字段，重启不丢失
-    this.regPassword = this.newPassword
-    // 🌟 同步更新账号数据库中的密码哈希，保证下次用新密码登录能校验通过
+    // 🌟 旧密码以数据库中的哈希为准校验，不再依赖内存中的全局密码值
+    let check: AuthResult = await AccountStore.login(this.regAccount, this.oldPassword)
+    if (!check.ok) {
+      this.errorMsg = '旧密码不正确'
+      promptAction.showToast({ message: '旧密码不正确' })
+      return
+    }
+    // 🌟 直接更新数据库中的密码哈希，立即生效
     let updated: boolean = await AccountStore.changePassword(this.regAccount, this.newPassword)
     if (!updated) {
-      promptAction.showToast({ message: '密码已在本机更新，但数据库同步失败，请重新登录后再试' })
+      promptAction.showToast({ message: '密码修改失败，请稍后重试' })
       return
     }
     promptAction.showToast({ message: '密码修改成功' })
@@ -178,17 +179,6 @@ export struct ChangePasswordPage {
           .width('100%').padding(14)
           .backgroundColor(ThemeColor.get('card_bg')).borderRadius(12)
 
-          if (this.regPassword === '') {
-            Row({ space: 8 }) {
-              Text('!').fontSize(12).fontWeight(FontWeight.Bold).fontColor(Color.White)
-                .width(18).height(18).borderRadius(9)
-                .backgroundColor(ThemeColor.get('warning')).textAlign(TextAlign.Center)
-              Text('当前账号尚未设置本地密码，请先在登录页完成注册')
-                .fontSize(12).fontColor(ThemeColor.get('text_sub')).layoutWeight(1)
-            }
-            .width('100%').padding(12)
-            .backgroundColor(ThemeColor.get('card_bg')).borderRadius(12)
-          }
 
           // 输入区
           Column({ space: 16 }) {

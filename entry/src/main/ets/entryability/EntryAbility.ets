@@ -14,11 +14,16 @@ import { ResourceItem } from '../model/ResourceModel';
 import { MessageCenter } from '../model/MessageCenterModel';
 import { TeacherReview } from '../model/ReviewModel';
 import { AccountStore } from '../model/AccountStore';
+import { preferences } from '@kit.ArkData';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
-    // 🌟 账号数据库（学号 / 教工号注册登录）初始化，表结构在 AccountStore 中创建
-    AccountStore.init(this.context)
+    // 🌟 账号服务地址（后端 + MySQL）：真机用电脑局域网 IP，模拟器可改回 10.0.2.2
+    // 用 preferences 读取已保存的地址：persistProp 的默认值会在启动时覆盖用户设置
+    AccountStore.init()
+    const apiPref = preferences.getPreferencesSync(this.context, { name: 'app_settings' })
+    AppStorage.setOrCreate<string>('apiBaseUrl',
+      apiPref.getSync('apiBaseUrl', 'http://10.245.26.89:3000') as string)
     // 🌟 本地持久化（等价于 H5 的 localStorage）：写入磁盘，重启应用数据不丢失
     // 注意：persistProp 会自动读取磁盘上的旧值，不能用 setOrCreate 覆盖
     PersistentStorage.persistProp<TodoItem[]>('todoList', []);
@@ -38,7 +43,8 @@ export default class EntryAbility extends UIAbility {
     // 注册登录 / 头像 / 深浅色模式 / 聊天记录
     PersistentStorage.persistProp<boolean>('isLogged', false);
     PersistentStorage.persistProp<string>('regAccount', '');
-    PersistentStorage.persistProp<string>('regPassword', '');
+    // 🌟 只记住「上次登录的学号/教工号」用于自动填充，密码不再持久化（只存哈希在账号库）
+    PersistentStorage.persistProp<string>('lastAccount', '');
     PersistentStorage.persistProp<string>('avatarEmoji', '');
     // 🌟 自定义头像（相册图片在沙箱中的路径）
     PersistentStorage.persistProp<string>('avatarUri', '');

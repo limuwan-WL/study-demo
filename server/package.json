@@ -1,0 +1,16 @@
+{
+  "name": "campus-helper-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "校园小助手账号服务：学号/教工号注册登录，数据存 MySQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "migrate": "node migrate.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.3"
+  }
+}

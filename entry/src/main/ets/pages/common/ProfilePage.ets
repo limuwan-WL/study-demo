@@ -173,10 +173,8 @@ export struct ProfilePage {
   }
 
   phoneLabel(): string {
+    // 🌟 手机号与登录账号解耦：只认单独绑定的手机号，不再把学号/教工号当手机号
     let phone = this.boundPhone
-    if (phone === '' && new RegExp('^1[3-9][0-9]{9}$').test(this.regAccount)) {
-      phone = this.regAccount
-    }
     return phone === '' ? '未绑定' : `${phone.slice(0, 3)}****${phone.slice(7)}`
   }
 

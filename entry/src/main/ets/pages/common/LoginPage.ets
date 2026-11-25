@@ -1,8 +1,7 @@
 import router from '@ohos.router';
 import { promptAction } from '@kit.ArkUI';
-import { common } from '@kit.AbilityKit';
 import { MessageCenter } from '../../model/MessageCenterModel';
-import { AccountStore, AuthResult } from '../../model/AccountStore';
+import { AccountStore, AccountRow, AuthResult } from '../../model/AccountStore';
 
 // 🌟 输入阶段过滤：学号/教工号只允许字母和数字，密码只允许字母/数字/下划线
 const ACCOUNT_FILTER: string = '[A-Za-z0-9]'
@@ -14,33 +13,35 @@ const PASSWORD_FILTER: string = '[A-Za-z0-9_]'
 struct LoginPage {
   @StorageLink('isLogged') isLogged: boolean = false
   @StorageLink('regAccount') regAccount: string = ''
-  @StorageLink('regPassword') regPassword: string = ''
-  // 🌟 记住我：勾选时下次自动填充账号密码，一键快速登录（状态持久化）
+  // 🌟 记住我：只记住上次登录的学号/教工号用于自动填充，密码不再明文持久化
+  @StorageLink('lastAccount') lastAccount: string = ''
+  // 🌟 记住我：勾选时下次自动填充账号（状态持久化）
   @StorageLink('rememberMe') rememberMe: boolean = true
   // 🌟 用户身份：student 学生 / teacher 老师 / assistant 助教（全局持久化，各页面按角色差异化展示）
   @StorageLink('userRole') userRole: string = 'student'
   // 🌟 注册时与账号绑定的身份，登录时按绑定身份进入，避免串角色
   @StorageLink('regRole') regRole: string = ''
   @StorageLink('nickname') nickname: string = '张同学'
-  @State mode: string = 'login' // login / register
+  @State mode: string = 'login' // login / register / reset
   @State inputAccount: string = ''
   @State inputPassword: string = ''
+  @State confirmPassword: string = ''
+  @State localAccounts: AccountRow[] = []
   @State submitting: boolean = false
 
   aboutToAppear() {
-    // 🌟 账号数据库初始化（幂等）：学号 / 教工号与密码哈希保存在本地 SQLite 表 user_account
-    AccountStore.init(getContext(this) as common.UIAbilityContext)
-    // 🌟 记住我：已注册且勾选时自动填充，实现快速登录
-    if (this.rememberMe && this.regAccount !== '') {
-      this.inputAccount = this.regAccount
-      this.inputPassword = this.regPassword
+    // 🌟 账号由 MySQL 后端统一存储，这里只负责拉取账号列表
+    AccountStore.init()
+    // 🌟 记住我：只回填上次登录的学号/教工号，密码需重新输入
+    if (this.rememberMe && this.lastAccount !== '') {
+      this.inputAccount = this.lastAccount
     }
+    this.loadAccounts()
   }
 
-  // 🌟 输入框内容与保存的凭据一致 → 按钮变为「一键登录」
-  isQuickLogin(): boolean {
-    return this.rememberMe && this.mode === 'login' && this.regAccount !== ''
-      && this.inputAccount.trim() === this.regAccount && this.inputPassword.trim() === this.regPassword
+  // 🌟 读取本机已注册账号，登录时点击可直接回填账号
+  async loadAccounts(): Promise<void> {
+    this.localAccounts = await AccountStore.listAccounts()
   }
 
   // 🌟 账号规则：学生为学号（6-20 位数字），教师/助教为教工号（4-20 位字母或数字）
@@ -106,7 +107,8 @@ struct LoginPage {
     }
     // 🌟 登录名即学号/教工号：注册成功后作为昵称，并保持全局状态同步
     this.regAccount = acc
-    this.regPassword = pwd
+    // 🌟 记住我：只保存学号/教工号，密码不落盘；取消勾选则清空记忆
+    this.lastAccount = this.rememberMe ? acc : ''
     this.regRole = this.userRole
     this.nickname = acc
     this.isLogged = true
@@ -125,6 +127,51 @@ struct LoginPage {
       return '助教'
     }
     return '学生'
+  }
+
+  // 🌟 忘记密码：本地离线场景，校验账号存在且身份匹配后直接重置为新密码
+  async reset(): Promise<void> {
+    if (this.submitting) {
+      return
+    }
+    let acc = this.inputAccount.trim()
+    let pwd = this.inputPassword.trim()
+    if (!this.isValidAccount(acc)) {
+      promptAction.showToast({
+        message: this.userRole === 'student' ? '学号为 6-20 位数字' : '教工号为 4-20 位字母或数字'
+      })
+      return
+    }
+    if (!this.isValidPassword(pwd)) {
+      promptAction.showToast({ message: '新密码至少 8 位，仅可包含字母、数字、下划线' })
+      return
+    }
+    if (this.confirmPassword.trim() !== pwd) {
+      promptAction.showToast({ message: '两次输入的新密码不一致' })
+      return
+    }
+    this.submitting = true
+    let account: AccountRow | null = await AccountStore.getAccount(acc)
+    let ok: boolean = false
+    if (account === null) {
+      promptAction.showToast({ message: '该学号/教工号尚未注册' })
+    } else if (account.role !== this.userRole) {
+      promptAction.showToast({ message: `该账号为${this.roleLabel(account.role)}身份，请切换对应身份` })
+    } else {
+      ok = await AccountStore.changePassword(acc, pwd)
+    }
+    this.submitting = false
+    if (!ok) {
+      if (account !== null && account.role === this.userRole) {
+        promptAction.showToast({ message: '重置失败，请稍后重试' })
+      }
+      return
+    }
+    promptAction.showToast({ message: '密码已重置，请用新密码登录' })
+    this.mode = 'login'
+    this.inputPassword = ''
+    this.confirmPassword = ''
+    this.inputAccount = acc
   }
 
   async login(): Promise<void> {
@@ -149,10 +196,6 @@ struct LoginPage {
     }
     this.submitting = true
     let res: AuthResult = await AccountStore.login(acc, pwd)
-    // 🌟 老版本单账号数据迁移：库里没有但与本机记住的账号密码一致时，补登记后继续登录
-    if (!res.ok && res.code === 'not_found' && this.regAccount === acc && this.regPassword === pwd) {
-      res = await AccountStore.register(acc, pwd, this.regRole === '' ? this.userRole : this.regRole, acc)
-    }
     this.submitting = false
     if (!res.ok) {
       promptAction.showToast({ message: res.message })
@@ -169,7 +212,8 @@ struct LoginPage {
     let role: string = res.account !== null ? res.account.role : this.userRole
     this.userRole = role
     this.regAccount = acc
-    this.regPassword = pwd
+    // 🌟 记住我：只保存学号/教工号，密码不落盘；取消勾选则清空记忆
+    this.lastAccount = this.rememberMe ? acc : ''
     this.regRole = role
     // 🌟 登录名即昵称：昵称优先取库里的昵称，历史数据兜底到本次输入账号
     let nick: string = res.account !== null ? res.account.nickname : ''
@@ -263,6 +307,19 @@ struct LoginPage {
             this.roleTab('assistant', '🧑‍💼 助教')
           }.width('100%')
 
+          // 🌟 重置密码模式提示：可随时返回登录
+          if (this.mode === 'reset') {
+            Row({ space: 6 }) {
+              Text('重置密码').fontSize(13).fontColor($r('app.color.text_label')).layoutWeight(1)
+              Text('返回登录').fontSize(13).fontColor($r('app.color.primary'))
+                .onClick(() => {
+                  this.mode = 'login'
+                  this.inputPassword = ''
+                  this.confirmPassword = ''
+                })
+            }.width('100%')
+          }
+
           Row({ space: 10 }) {
             SymbolGlyph($r('sys.symbol.person')).fontSize(18).fontColor([$r('app.color.text_hint')])
             TextInput({ text: this.inputAccount, placeholder: '学号 / 教工号' })
@@ -275,7 +332,10 @@ struct LoginPage {
 
           Row({ space: 10 }) {
             SymbolGlyph($r('sys.symbol.lock')).fontSize(18).fontColor([$r('app.color.text_hint')])
-            TextInput({ text: this.inputPassword, placeholder: '至少 8 位字母/数字/下划线' }).type(InputType.Password)
+            TextInput({
+              text: this.inputPassword,
+              placeholder: this.mode === 'reset' ? '新密码（至少 8 位）' : '至少 8 位字母/数字/下划线'
+            }).type(InputType.Password)
               .backgroundColor(Color.Transparent).height(44).fontSize(15)
               .inputFilter(PASSWORD_FILTER)
               .onChange((v: string) => this.inputPassword = v).layoutWeight(1)
@@ -283,19 +343,47 @@ struct LoginPage {
           .width('100%').height(50).padding({ left: 14, right: 14 })
           .backgroundColor($r('app.color.field_bg')).borderRadius(14)
 
-          // 🌟 记住我单选框：勾选后注册/登录的账号密码会被记住，下次自动填充快速登录
-          Row({ space: 8 }) {
-            SymbolGlyph(this.rememberMe ? $r('sys.symbol.checkmark_circle_fill') : $r('sys.symbol.circle'))
-              .fontSize(18)
-              .fontColor([this.rememberMe ? '#3F7EF6' : '#B0B5C0'])
-            Text('记住我，下次快速登录').fontSize(13).fontColor($r('app.color.text_label'))
+          // 🌟 重置密码需要二次确认，避免手误
+          if (this.mode === 'reset') {
+            Row({ space: 10 }) {
+              SymbolGlyph($r('sys.symbol.lock')).fontSize(18).fontColor([$r('app.color.text_hint')])
+              TextInput({ text: this.confirmPassword, placeholder: '再次输入新密码' }).type(InputType.Password)
+                .backgroundColor(Color.Transparent).height(44).fontSize(15)
+                .inputFilter(PASSWORD_FILTER)
+                .onChange((v: string) => this.confirmPassword = v).layoutWeight(1)
+            }
+            .width('100%').height(50).padding({ left: 14, right: 14 })
+            .backgroundColor($r('app.color.field_bg')).borderRadius(14)
           }
-          .onClick(() => {
-            this.rememberMe = !this.rememberMe
-          })
-          .margin({ top: -4 })
 
-          Text(this.mode === 'login' ? (this.isQuickLogin() ? '一键登录' : '登  录') : '注  册')
+          // 🌟 忘记密码入口：仅登录模式展示
+          if (this.mode === 'login') {
+            Row() {
+              Blank()
+              Text('忘记密码？').fontSize(13).fontColor($r('app.color.primary'))
+                .onClick(() => {
+                  this.mode = 'reset'
+                  this.inputPassword = ''
+                  this.confirmPassword = ''
+                })
+            }.width('100%').margin({ top: -6 })
+          }
+
+          // 🌟 记住我单选框：勾选后只记住学号/教工号，下次自动填充（重置密码时隐藏）
+          if (this.mode !== 'reset') {
+            Row({ space: 8 }) {
+              SymbolGlyph(this.rememberMe ? $r('sys.symbol.checkmark_circle_fill') : $r('sys.symbol.circle'))
+                .fontSize(18)
+                .fontColor([this.rememberMe ? '#3F7EF6' : '#B0B5C0'])
+              Text('记住我，下次自动填充账号').fontSize(13).fontColor($r('app.color.text_label'))
+            }
+            .onClick(() => {
+              this.rememberMe = !this.rememberMe
+            })
+            .margin({ top: -4 })
+          }
+
+          Text(this.mode === 'reset' ? '重置密码' : (this.mode === 'login' ? '登  录' : '注  册'))
             .fontSize(16).fontWeight(FontWeight.Medium).fontColor(Color.White)
             .textAlign(TextAlign.Center)
             .width('100%').height(48).borderRadius(24)
@@ -305,12 +393,34 @@ struct LoginPage {
             .onClick(() => {
               if (this.mode === 'login') {
                 this.login()
-              } else {
+              } else if (this.mode === 'register') {
                 this.register()
+              } else {
+                this.reset()
               }
             })
 
-          Text('学号 / 教工号保存在本地数据库，可注册多个账号')
+          // 🌟 本机已注册账号：点击直接回填账号与对应身份，支持多账号
+          if (this.mode === 'login' && this.localAccounts.length > 0) {
+            Column({ space: 8 }) {
+              Text('已注册账号').fontSize(11).fontColor($r('app.color.text_hint')).width('100%')
+              Flex({ wrap: FlexWrap.Wrap }) {
+                ForEach(this.localAccounts, (item: AccountRow) => {
+                  Text(item.accountNo)
+                    .fontSize(12).fontColor($r('app.color.text_label'))
+                    .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+                    .margin({ right: 8, bottom: 8 })
+                    .backgroundColor($r('app.color.field_bg')).borderRadius(10)
+                    .onClick(() => {
+                      this.inputAccount = item.accountNo
+                      this.userRole = item.role
+                    })
+                }, (item: AccountRow) => item.accountNo)
+              }.width('100%')
+            }.width('100%')
+          }
+
+          Text('账号数据保存在服务器数据库，可注册多个账号')
             .fontSize(11).fontColor($r('app.color.text_hint'))
         }
         .width('88%')

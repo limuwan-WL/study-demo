@@ -1,19 +1,8 @@
-import { relationalStore } from '@kit.ArkData';
-import { common } from '@kit.AbilityKit';
-import { cryptoFramework } from '@kit.CryptoArchitectureKit';
-import { util } from '@kit.ArkTS';
+import { http } from '@kit.NetworkKit';
 
-// 🌟 账号数据库：学号 / 教工号注册登录的本地记忆
-// 表 user_account：一个学号或教工号一行，密码只保存加盐哈希，不落明文
-const DB_NAME: string = 'campus_helper.db'
-const TABLE: string = 'user_account'
-const CREATE_SQL: string = `CREATE TABLE IF NOT EXISTS ${TABLE} (` +
-  'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
-  'accountNo TEXT NOT NULL UNIQUE, ' +
-  'passwordHash TEXT NOT NULL, ' +
-  'role TEXT NOT NULL, ' +
-  'nickname TEXT NOT NULL DEFAULT \'\', ' +
-  'createdAt INTEGER NOT NULL)'
+// 🌟 账号改为由 MySQL 后端统一存储：App 通过 HTTP 调用 server/ 提供的接口
+// 接口地址可通过 AppStorage 的 apiBaseUrl 配置（模拟器默认 10.0.2.2，真机改成电脑局域网 IP）
+const DEFAULT_BASE_URL: string = 'http://10.0.2.2:3000'
 
 export interface AccountRow {
   id: number
@@ -24,140 +13,130 @@ export interface AccountRow {
 
 export interface AuthResult {
   ok: boolean
-  // ok / not_found / bad_password / duplicate / error
+  // ok / not_found / bad_password / duplicate / invalid / offline / error
   code: string
   message: string
   account: AccountRow | null
 }
 
-// 密码加盐哈希：SHA-256(accountNo + ':' + password)，库中不保存明文
-async function hashPassword(accountNo: string, password: string): Promise<string> {
-  let md = cryptoFramework.createMd('SHA256')
-  let bytes = new util.TextEncoder().encodeInto(accountNo + ':' + password)
-  await md.update({ data: bytes })
-  let digest = await md.digest()
-  let hex: string = ''
-  for (let i = 0; i < digest.data.length; i++) {
-    let part = digest.data[i].toString(16)
-    hex += part.length === 1 ? '0' + part : part
+interface ApiAccount {
+  id?: number
+  accountNo?: string
+  role?: string
+  nickname?: string
+}
+
+interface ApiResp {
+  ok?: boolean
+  code?: string
+  message?: string
+  account?: ApiAccount
+  accounts?: ApiAccount[]
+}
+
+function baseUrl(): string {
+  let url = AppStorage.get<string>('apiBaseUrl')
+  return url === undefined || url === '' ? DEFAULT_BASE_URL : url
+}
+
+function toAccount(item: ApiAccount): AccountRow {
+  return {
+    id: item.id === undefined ? 0 : item.id,
+    accountNo: item.accountNo === undefined ? '' : item.accountNo,
+    role: item.role === undefined ? '' : item.role,
+    nickname: item.nickname === undefined ? '' : item.nickname
   }
-  return hex
+}
+
+async function request(path: string, method: http.RequestMethod, body: object | null): Promise<ApiResp> {
+  const req = http.createHttp()
+  try {
+    const options: http.HttpRequestOptions = {
+      method: method,
+      header: { 'Content-Type': 'application/json' },
+      connectTimeout: 5000,
+      readTimeout: 5000
+    }
+    if (body !== null) {
+      options.extraData = JSON.stringify(body)
+    }
+    const res = await req.request(baseUrl() + path, options)
+    if (res.responseCode !== 200) {
+      return { ok: false, code: 'error', message: `账号服务异常（${res.responseCode}）` }
+    }
+    const text: string = typeof res.result === 'string' ? res.result : JSON.stringify(res.result)
+    return JSON.parse(text) as ApiResp
+  } catch (e) {
+    return { ok: false, code: 'offline', message: '无法连接账号服务器，请检查网络与服务是否启动' }
+  } finally {
+    req.destroy()
+  }
+}
+
+function toResult(resp: ApiResp): AuthResult {
+  let account: AccountRow | null = resp.account === undefined ? null : toAccount(resp.account)
+  let code: string = resp.code === undefined ? 'error' : resp.code
+  let message: string = resp.message === undefined ? '请求失败' : resp.message
+  return { ok: resp.ok === true, code: code, message: message, account: account }
 }
 
 export class AccountStore {
-  private static initPromise: Promise<relationalStore.RdbStore> | null = null
-
-  // 在 EntryAbility.onCreate 或页面 aboutToAppear 调用，重复调用无副作用
-  static init(context: common.Context): void {
-    if (AccountStore.initPromise === null) {
-      AccountStore.initPromise = AccountStore.open(context)
-    }
+  // 兼容原有调用：账号改存 MySQL 后无需本地初始化
+  static init(): void {
   }
 
-  private static async open(context: common.Context): Promise<relationalStore.RdbStore> {
-    const config: relationalStore.StoreConfig = {
-      name: DB_NAME,
-      securityLevel: relationalStore.SecurityLevel.S1
-    }
-    const store = await relationalStore.getRdbStore(context, config)
-    await store.executeSql(CREATE_SQL)
-    return store
-  }
-
-  private static async ready(): Promise<relationalStore.RdbStore> {
-    if (AccountStore.initPromise === null) {
-      throw new Error('账号数据库尚未初始化')
-    }
-    return await AccountStore.initPromise
-  }
-
-  // 按学号/教工号查询一条账号记录（含密码哈希），不存在返回 null
-  private static async findRaw(accountNo: string): Promise<relationalStore.ValuesBucket | null> {
-    const store = await AccountStore.ready()
-    const rs = await store.querySql(
-      `SELECT id, accountNo, passwordHash, role, nickname FROM ${TABLE} WHERE accountNo = ? LIMIT 1`, [accountNo])
-    if (!rs.goToFirstRow()) {
-      rs.close()
-      return null
-    }
-    const bucket: relationalStore.ValuesBucket = {
-      'id': rs.getLong(rs.getColumnIndex('id')),
-      'accountNo': rs.getString(rs.getColumnIndex('accountNo')),
-      'passwordHash': rs.getString(rs.getColumnIndex('passwordHash')),
-      'role': rs.getString(rs.getColumnIndex('role')),
-      'nickname': rs.getString(rs.getColumnIndex('nickname'))
-    }
-    rs.close()
-    return bucket
-  }
-
-  static async exists(accountNo: string): Promise<boolean> {
-    const raw = await AccountStore.findRaw(accountNo)
-    return raw !== null
-  }
-
-  // 注册：学号/教工号已存在则返回 duplicate
+  // 注册：由后端写入 MySQL，学号/教工号唯一
   static async register(accountNo: string, password: string, role: string, nickname: string): Promise<AuthResult> {
-    try {
-      if (await AccountStore.exists(accountNo)) {
-        return { ok: false, code: 'duplicate', message: '该学号/教工号已注册，请直接登录', account: null }
-      }
-      const store = await AccountStore.ready()
-      const pwdHash = await hashPassword(accountNo, password)
-      const bucket: relationalStore.ValuesBucket = {
-        'accountNo': accountNo,
-        'passwordHash': pwdHash,
-        'role': role,
-        'nickname': nickname,
-        'createdAt': Date.now()
-      }
-      const rowId = await store.insert(TABLE, bucket)
-      if (rowId < 0) {
-        return { ok: false, code: 'error', message: '注册失败，请稍后重试', account: null }
-      }
-      const account: AccountRow = { id: rowId, accountNo: accountNo, role: role, nickname: nickname }
-      return { ok: true, code: 'ok', message: '注册成功', account: account }
-    } catch (e) {
-      return { ok: false, code: 'error', message: '注册失败：' + (e as Error).message, account: null }
+    const body: Record<string, string> = {
+      'accountNo': accountNo,
+      'password': password,
+      'role': role,
+      'nickname': nickname
     }
+    return toResult(await request('/api/auth/register', http.RequestMethod.POST, body))
   }
 
-  // 登录：校验学号/教工号与密码
+  // 登录：后端校验账号与密码哈希
   static async login(accountNo: string, password: string): Promise<AuthResult> {
-    try {
-      const raw = await AccountStore.findRaw(accountNo)
-      if (raw === null) {
-        return { ok: false, code: 'not_found', message: '该学号/教工号尚未注册', account: null }
-      }
-      const pwdHash = await hashPassword(accountNo, password)
-      if (pwdHash !== raw['passwordHash']) {
-        return { ok: false, code: 'bad_password', message: '学号/教工号或密码错误', account: null }
-      }
-      const account: AccountRow = {
-        id: raw['id'] as number,
-        accountNo: raw['accountNo'] as string,
-        role: raw['role'] as string,
-        nickname: raw['nickname'] as string
-      }
-      return { ok: true, code: 'ok', message: '登录成功', account: account }
-    } catch (e) {
-      return { ok: false, code: 'error', message: '登录失败：' + (e as Error).message, account: null }
-    }
+    const body: Record<string, string> = { 'accountNo': accountNo, 'password': password }
+    return toResult(await request('/api/auth/login', http.RequestMethod.POST, body))
   }
 
-  // 修改密码：同步更新数据库中的密码哈希
+  // 修改 / 重置密码：只更新 MySQL 中的密码哈希
   static async changePassword(accountNo: string, newPassword: string): Promise<boolean> {
-    try {
-      const store = await AccountStore.ready()
-      const bucket: relationalStore.ValuesBucket = {
-        'passwordHash': await hashPassword(accountNo, newPassword)
-      }
-      const predicates = new relationalStore.RdbPredicates(TABLE)
-      predicates.equalTo('accountNo', accountNo)
-      const rows = await store.update(bucket, predicates)
-      return rows > 0
-    } catch (e) {
-      return false
+    const body: Record<string, string> = { 'accountNo': accountNo, 'newPassword': newPassword }
+    const resp = await request('/api/auth/password', http.RequestMethod.POST, body)
+    return resp.ok === true
+  }
+
+  // 账号列表：从 MySQL 读取
+  static async listAccounts(): Promise<AccountRow[]> {
+    const resp = await request('/api/auth/accounts', http.RequestMethod.GET, null)
+    if (resp.accounts === undefined) {
+      return []
     }
+    const list: AccountRow[] = []
+    for (let i = 0; i < resp.accounts.length; i++) {
+      list.push(toAccount(resp.accounts[i]))
+    }
+    return list
+  }
+
+  // 按学号/教工号取单个账号（列表接口数据量小，直接查找）
+  static async getAccount(accountNo: string): Promise<AccountRow | null> {
+    const list = await AccountStore.listAccounts()
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].accountNo === accountNo) {
+        return list[i]
+      }
+    }
+    return null
+  }
+
+  // 注销账号：从 MySQL 物理删除
+  static async remove(accountNo: string): Promise<boolean> {
+    const body: Record<string, string> = { 'accountNo': accountNo }
+    const resp = await request('/api/auth/delete', http.RequestMethod.POST, body)
+    return resp.ok === true
   }
 }
