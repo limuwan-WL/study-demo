@@ -23,7 +23,7 @@ export default class EntryAbility extends UIAbility {
     AccountStore.init()
     const apiPref = preferences.getPreferencesSync(this.context, { name: 'app_settings' })
     AppStorage.setOrCreate<string>('apiBaseUrl',
-      apiPref.getSync('apiBaseUrl', 'http://10.245.26.89:3000') as string)
+      apiPref.getSync('apiBaseUrl', 'http://10.0.2.2:3000') as string)
     // 🌟 本地持久化（等价于 H5 的 localStorage）：写入磁盘，重启应用数据不丢失
     // 注意：persistProp 会自动读取磁盘上的旧值，不能用 setOrCreate 覆盖
     PersistentStorage.persistProp<TodoItem[]>('todoList', []);

@@ -27,9 +27,19 @@ export struct SettingsPage {
   @StorageLink('pushReport') pushReport: boolean = true
   @StorageLink('networkOnline') networkOnline: boolean = true
   // 🌟 后端服务地址：可在此修改，立即生效并持久化
-  @StorageLink('apiBaseUrl') apiBaseUrl: string = 'http://10.245.26.89:3000'
+  @StorageLink('apiBaseUrl') apiBaseUrl: string = 'http://10.0.2.2:3000'
   @State serverInput: string = ''
   @State cacheSize: string = '0 KB'
+  // 🌟 注销账号：需输入当前密码确认
+  deleteDialog: CustomDialogController = new CustomDialogController({
+    builder: DeleteAccountDialog({
+      onConfirm: (password: string) => {
+        this.doDeleteAccount(password)
+      }
+    }),
+    autoCancel: true,
+    customStyle: true
+  })
 
   aboutToAppear() {
     ThemeColor.isDark = this.isDark
@@ -61,28 +71,32 @@ export struct SettingsPage {
     })
   }
 
-  // 🌟 注销当前账号：二次确认后从本地账号库删除该学号/教工号，不可恢复
+  // 🌟 注销当前账号：输入当前密码，服务端校验通过后删除，不可恢复
   deleteAccount(): void {
     if (this.regAccount === '') {
       Feedback.fail('注销账号', '当前未登录')
       return
     }
-    let account = this.regAccount
-    Feedback.confirm('注销当前账号', `将永久删除 ${account} 的登录信息，删除后无法恢复。确定继续吗？`,
-      (): void => {
-        AccountStore.remove(account).then((ok: boolean) => {
-          if (!ok) {
-            Feedback.fail('注销账号', '删除失败，请稍后重试')
-            return
-          }
-          AppStorage.setOrCreate<string>('regAccount', '')
-          AppStorage.setOrCreate<string>('regRole', '')
-          AppStorage.setOrCreate<string>('nickname', '')
-          this.isLogged = false
-          Feedback.success('账号已注销')
-          router.replaceUrl({ url: 'pages/common/LoginPage' })
-        })
-      }, '确认注销', true)
+    this.deleteDialog.open()
+  }
+
+  doDeleteAccount(password: string): void {
+    if (password === '') {
+      Feedback.fail('注销账号', '请输入当前密码')
+      return
+    }
+    AccountStore.remove(this.regAccount, password).then((ok: boolean) => {
+      if (!ok) {
+        Feedback.fail('注销账号', '密码不正确，或删除失败')
+        return
+      }
+      AppStorage.setOrCreate<string>('regAccount', '')
+      AppStorage.setOrCreate<string>('regRole', '')
+      AppStorage.setOrCreate<string>('nickname', '')
+      this.isLogged = false
+      Feedback.success('账号已注销')
+      router.replaceUrl({ url: 'pages/common/LoginPage' })
+    })
   }
 
   // 🌟 真实计算缓存目录大小，清理时删除缓存文件（不动用户资料与笔记）
@@ -344,5 +358,47 @@ export struct SettingsPage {
       }.layoutWeight(1).scrollBar(BarState.Off)
     }
     .width('100%').height('100%').backgroundColor(ThemeColor.get('page_bg'))
+  }
+}
+
+// 🌟 注销账号：输入当前密码确认
+@CustomDialog
+struct DeleteAccountDialog {
+  controller: CustomDialogController
+  @State password: string = ''
+  onConfirm: (password: string) => void = () => {
+  }
+
+  build() {
+    Column({ space: 12 }) {
+      Text('注销当前账号')
+        .fontSize(17).fontWeight(FontWeight.Bold).fontColor($r('app.color.text_main'))
+      Text('请输入当前密码确认删除，删除后无法恢复')
+        .fontSize(13).fontColor($r('app.color.text_main')).opacity(0.6)
+      TextInput({ placeholder: '当前密码' })
+        .type(InputType.Password)
+        .width('100%')
+        .onChange((v: string) => {
+          this.password = v
+        })
+      Row({ space: 12 }) {
+        Button('取消')
+          .layoutWeight(1)
+          .backgroundColor($r('app.color.field_bg'))
+          .fontColor($r('app.color.text_main'))
+          .onClick(() => this.controller.close())
+        Button('确认注销')
+          .layoutWeight(1)
+          .backgroundColor('#E84026')
+          .fontColor(Color.White)
+          .onClick(() => {
+            this.controller.close()
+            this.onConfirm(this.password)
+          })
+      }.width('100%').margin({ top: 4 })
+    }
+    .padding(20)
+    .backgroundColor($r('app.color.card_bg'))
+    .borderRadius(16)
   }
 }

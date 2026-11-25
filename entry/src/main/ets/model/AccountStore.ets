@@ -102,10 +102,21 @@ export class AccountStore {
     return toResult(await request('/api/auth/login', http.RequestMethod.POST, body))
   }
 
-  // 修改 / 重置密码：只更新 MySQL 中的密码哈希
-  static async changePassword(accountNo: string, newPassword: string): Promise<boolean> {
-    const body: Record<string, string> = { 'accountNo': accountNo, 'newPassword': newPassword }
+  // 修改密码：服务端校验旧密码哈希后才更新
+  static async changePassword(accountNo: string, oldPassword: string, newPassword: string): Promise<boolean> {
+    const body: Record<string, string> = {
+      'accountNo': accountNo,
+      'password': oldPassword,
+      'newPassword': newPassword
+    }
     const resp = await request('/api/auth/password', http.RequestMethod.POST, body)
+    return resp.ok === true
+  }
+
+  // 忘记密码重置：未登录场景，仅校验账号存在与身份一致（演示用途）
+  static async resetPassword(accountNo: string, newPassword: string, role: string): Promise<boolean> {
+    const body: Record<string, string> = { 'accountNo': accountNo, 'newPassword': newPassword, 'role': role }
+    const resp = await request('/api/auth/reset', http.RequestMethod.POST, body)
     return resp.ok === true
   }
 
@@ -133,9 +144,9 @@ export class AccountStore {
     return null
   }
 
-  // 注销账号：从 MySQL 物理删除
-  static async remove(accountNo: string): Promise<boolean> {
-    const body: Record<string, string> = { 'accountNo': accountNo }
+  // 注销账号：校验密码后从 MySQL 物理删除
+  static async remove(accountNo: string, password: string): Promise<boolean> {
+    const body: Record<string, string> = { 'accountNo': accountNo, 'password': password }
     const resp = await request('/api/auth/delete', http.RequestMethod.POST, body)
     return resp.ok === true
   }

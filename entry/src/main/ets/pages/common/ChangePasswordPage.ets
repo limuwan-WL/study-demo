@@ -108,7 +108,7 @@ export struct ChangePasswordPage {
       return
     }
     // 🌟 直接更新数据库中的密码哈希，立即生效
-    let updated: boolean = await AccountStore.changePassword(this.regAccount, this.newPassword)
+    let updated: boolean = await AccountStore.changePassword(this.regAccount, this.oldPassword, this.newPassword)
     if (!updated) {
       promptAction.showToast({ message: '密码修改失败，请稍后重试' })
       return

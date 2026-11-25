@@ -99,36 +99,84 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// 修改 / 重置密码：调用方需先用旧密码登录校验
+// 修改密码：需携带当前密码，服务端校验通过后才更新
 app.post('/api/auth/password', async (req, res) => {
   const body = req.body || {};
   const accountNo = String(body.accountNo || '').trim();
+  const password = String(body.password || '');
   const newPassword = String(body.newPassword || '');
+  if (accountNo === '' || password === '') {
+    return fail(res, 'invalid', '账号和当前密码不能为空');
+  }
   if (!PASSWORD_RE.test(newPassword)) {
     return fail(res, 'invalid', '新密码至少 8 位，仅可包含字母、数字、下划线');
   }
   try {
-    const [result] = await pool.query(
-      'UPDATE user_account SET password_hash = ?, updated_at = ? WHERE account_no = ?',
-      [hashPassword(accountNo, newPassword), Date.now(), accountNo]);
-    if (result.affectedRows === 0) {
+    const [rows] = await pool.query(
+      'SELECT password_hash FROM user_account WHERE account_no = ?', [accountNo]);
+    if (rows.length === 0) {
       return fail(res, 'not_found', '账号不存在');
     }
+    if (rows[0].password_hash !== hashPassword(accountNo, password)) {
+      return fail(res, 'bad_password', '当前密码不正确', 401);
+    }
+    await pool.query(
+      'UPDATE user_account SET password_hash = ?, updated_at = ? WHERE account_no = ?',
+      [hashPassword(accountNo, newPassword), Date.now(), accountNo]);
     res.json({ ok: true, code: 'ok', message: '密码已更新', account: null });
   } catch (e) {
     fail(res, 'error', '修改密码失败：' + e.message, 500);
   }
 });
 
-// 注销账号：物理删除
+// 忘记密码重置：未登录场景，仅校验账号存在且身份一致（演示用途）
+app.post('/api/auth/reset', async (req, res) => {
+  const body = req.body || {};
+  const accountNo = String(body.accountNo || '').trim();
+  const newPassword = String(body.newPassword || '');
+  const role = String(body.role || '').trim();
+  if (accountNo === '' || !ROLES.includes(role)) {
+    return fail(res, 'invalid', '账号或身份不合法');
+  }
+  if (!PASSWORD_RE.test(newPassword)) {
+    return fail(res, 'invalid', '新密码至少 8 位，仅可包含字母、数字、下划线');
+  }
+  try {
+    const [rows] = await pool.query(
+      'SELECT role FROM user_account WHERE account_no = ?', [accountNo]);
+    if (rows.length === 0) {
+      return fail(res, 'not_found', '账号不存在');
+    }
+    if (rows[0].role !== role) {
+      return fail(res, 'role_mismatch', '身份与账号不匹配');
+    }
+    await pool.query(
+      'UPDATE user_account SET password_hash = ?, updated_at = ? WHERE account_no = ?',
+      [hashPassword(accountNo, newPassword), Date.now(), accountNo]);
+    res.json({ ok: true, code: 'ok', message: '密码已重置', account: null });
+  } catch (e) {
+    fail(res, 'error', '重置密码失败：' + e.message, 500);
+  }
+});
+
+// 注销账号：校验密码后物理删除
 app.post('/api/auth/delete', async (req, res) => {
   const body = req.body || {};
   const accountNo = String(body.accountNo || '').trim();
+  const password = String(body.password || '');
+  if (accountNo === '' || password === '') {
+    return fail(res, 'invalid', '账号和密码不能为空');
+  }
   try {
-    const [result] = await pool.query('DELETE FROM user_account WHERE account_no = ?', [accountNo]);
-    if (result.affectedRows === 0) {
+    const [rows] = await pool.query(
+      'SELECT password_hash FROM user_account WHERE account_no = ?', [accountNo]);
+    if (rows.length === 0) {
       return fail(res, 'not_found', '账号不存在');
     }
+    if (rows[0].password_hash !== hashPassword(accountNo, password)) {
+      return fail(res, 'bad_password', '密码不正确', 401);
+    }
+    await pool.query('DELETE FROM user_account WHERE account_no = ?', [accountNo]);
     res.json({ ok: true, code: 'ok', message: '账号已注销', account: null });
   } catch (e) {
     fail(res, 'error', '注销失败：' + e.message, 500);

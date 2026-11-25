@@ -158,7 +158,7 @@ struct LoginPage {
     } else if (account.role !== this.userRole) {
       promptAction.showToast({ message: `该账号为${this.roleLabel(account.role)}身份，请切换对应身份` })
     } else {
-      ok = await AccountStore.changePassword(acc, pwd)
+      ok = await AccountStore.resetPassword(acc, pwd, this.userRole)
     }
     this.submitting = false
     if (!ok) {
