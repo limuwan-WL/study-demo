@@ -1,0 +1,80 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#000000"
+    },
+    {
+      "name": "page_bg",
+      "value": "#101214"
+    },
+    {
+      "name": "card_bg",
+      "value": "#1C2026"
+    },
+    {
+      "name": "field_bg",
+      "value": "#262B33"
+    },
+    {
+      "name": "divider_color",
+      "value": "#262B33"
+    },
+    {
+      "name": "divider",
+      "value": "#262B33"
+    },
+    {
+      "name": "text_main",
+      "value": "#E6E8EB"
+    },
+    {
+      "name": "text_body",
+      "value": "#C9CDD2"
+    },
+    {
+      "name": "text_sub",
+      "value": "#9BA1A8"
+    },
+    {
+      "name": "text_hint",
+      "value": "#6E747C"
+    },
+    {
+      "name": "text_label",
+      "value": "#A8AEB6"
+    },
+    {
+      "name": "primary",
+      "value": "#3F7EF6"
+    },
+    {
+      "name": "danger",
+      "value": "#EF4444"
+    },
+    {
+      "name": "btn_gray",
+      "value": "#5A616B"
+    },
+    {
+      "name": "btn_cancel",
+      "value": "#4A505A"
+    },
+    {
+      "name": "primary_weak",
+      "value": "#1E2A3D"
+    },
+    {
+      "name": "success",
+      "value": "#4ADE80"
+    },
+    {
+      "name": "chat_grad_top",
+      "value": "#14273F"
+    },
+    {
+      "name": "chat_grad_bottom",
+      "value": "#101214"
+    }
+  ]
+}

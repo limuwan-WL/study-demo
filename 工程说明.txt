@@ -1,0 +1,265 @@
+============================================================
+校园小助手（TabsDemo）工程说明
+============================================================
+
+一、工程概览
+------------------------------------------------------------
+1. 项目名称：校园小助手（应用名以 AppScope 资源为准；工程根目录 TabsDemo）
+2. 包名：com.example.tabsdemo
+3. 版本：1.0.0（versionCode 1000000）
+4. 定位：面向学生与教师的校园学习类 HarmonyOS 应用，覆盖
+   「课堂教学闭环 + 个人知识沉淀 + 轻量激励」三大方向，包括
+   待办、日程、课表、笔记、收藏、社区、消息、课程练习、教师
+   课堂互动、金币与成长体系等模块。
+5. 形态：单 HAP（entry 模块），支持 phone / tablet / 2in1。
+6. 数据：纯本地运行，无真实后端。所有数据通过
+   PersistentStorage 落盘、AppStorage 共享；「云端同步」
+   「弱网」「消息中心」等均为本地模拟实现，UI 上有明确标注。
+7. 代码规模：entry/src/main/ets 下共 125 个 .ets 文件，约
+   3.7 万行；其中页面与视图 80 个，路由注册页面 72 个，
+   数据模型 26 个，工具类 14 个，公共组件 3 个。
+
+二、技术栈与运行环境
+------------------------------------------------------------
+1. 平台：HarmonyOS NEXT，runtimeOS 为 HarmonyOS
+2. SDK：compatibleSdkVersion / targetSdkVersion 均为 5.0.5(17)
+3. 语言与框架：ArkTS + ArkUI 声明式开发（@Entry / @Component /
+   @Builder / @CustomDialog / @StorageLink）
+4. 构建：Hvigor（build-profile.json5），入口模块为 entry
+5. 依赖：无第三方运行时依赖；测试依赖 @ohos/hypium、@ohos/hamock
+6. 申请权限：
+   - ohos.permission.INTERNET（预留网络能力）
+   - ohos.permission.PUBLISH_AGENT_REMINDER（上课日程提醒）
+   - ohos.permission.APPROXIMATELY_LOCATION / LOCATION
+     （课堂位置签到，用于计算与签到点距离）
+7. 扩展能力：EntryBackupAbility（应用数据备份恢复）
+
+三、目录结构
+------------------------------------------------------------
+根目录
+  AppScope/                 应用级配置与图标（app.json5）
+  entry/                    主模块
+    src/main/
+      ets/
+        entryability/       EntryAbility：启动、持久化、种子数据、主题
+        entrybackupability/ 备份扩展
+        pages/              页面（按业务分目录）
+          Index.ets         底部 5 个 Tab 的主框架
+          common/           登录、首页、我的、设置、资料、隐私等
+          course/           课程、章节、名师、练习、作业、班级群等
+          study/            待办、日程、课表、笔记、收藏、金币等
+          social/           社区、消息、搜索、私信、关注
+          subjects/         各学科专题页（语文、数学、英语、理化生等）
+        model/              数据模型与业务规则（26 个）
+        utils/              工具类（14 个）
+        components/         可复用组件与弹窗（3 个）
+      resources/
+        base/               浅色主题资源、颜色令牌、页面路由表
+        dark/               深色主题颜色令牌
+        rawfile/            原始资源
+    src/test/               本地单元测试
+    src/ohosTest/           设备侧测试
+    src/mock/               Mock 配置
+  学习软件介绍.html          产品需求与功能说明（PRD）
+  build-profile.json5       构建配置
+  oh-package.json5          依赖配置
+  code-linter.json5         代码规范配置
+
+目录职责简述
+  pages/common    登录注册、首页、我的、个人资料、设置、隐私设置、
+                  第三方绑定、存储审计、意见反馈、关于、政策条款
+  pages/course    课程主页、学科中心、章节页、名师主页、单词记忆、
+                  语法、听力、口语、等级训练、作业、题库、助教管理、
+                  成绩报告、班级群（列表/详情/文件/公告/搜索）
+  pages/study     待办、日程（列表/本周）、课表、笔记（列表/详情/编辑）、
+                  收藏、金币、随堂练习、任务、积分、问卷、随机抽选、
+                  数据查看、课堂签到
+  pages/social    发现（社区）、帖子详情、搜索、私信聊天、关注列表
+  pages/subjects  语文、数学、英语（中学/大学）、日语、韩语、物理、
+                  化学、生物、历史、地理、政治、高数、大学物理、
+                  大学化学、计算机基础、C 语言、现代汉语、心理学、
+                  微观经济学等学科专题页
+
+四、启动流程与状态管理
+------------------------------------------------------------
+1. EntryAbility.onCreate()
+   - 用 PersistentStorage.persistProp 注册全部持久化键（待办、日程、
+     笔记、笔记本、收藏、帖子、消息、课程表、教师、作业、班级群、
+     金币、积分、任务、练习、问卷、隐私开关等）
+   - 空数据时灌入演示种子；老数据做字段补齐与迁移校正
+   - 恢复用户选择的深/浅色模式（colorModeSetting）
+   - ensureGroupSeed() 灌入班级群演示数据
+   - dailyLogin() 发放每日登录经验与金币
+2. onWindowStageCreate()
+   - 未登录：加载 pages/common/LoginPage
+   - 已登录：加载 pages/Index
+   - Index.onPageShow 再做一次登录态兜底拦截
+3. 主框架 pages/Index.ets
+   - Tabs 底部导航：首页 / 课程 / 发现 / 消息 / 我的
+   - 发现页与消息页带未读红点角标
+   - 全局状态通过 AppStorage + @StorageLink 实时同步，
+     任何页面增删改后首页统计等会自动刷新
+
+五、功能模块
+------------------------------------------------------------
+5.1 首页（pages/common/HomePage.ets）
+  - 问候语跟随昵称变化
+  - 今日待办 / 最近日程 / 笔记 / 收藏快捷卡片与统计
+  - 本周课表预览、快捷入口宫格
+  - 卡片点击直达对应功能页
+
+5.2 课程（pages/course/CoursePage.ets）
+  - 学科中心与课程列表，支持学生/教师视角
+  - 「授课名师」轮播：教师主页、关注、课程与资料、匿名评价
+  - 章节页：按章节进入独立内容页
+  - 语言训练：单词记忆、语法、听力、口语、等级训练
+  - 学习打卡、成就体系、签到日历
+  - 作业、题库、助教管理、成绩报告
+  - 班级群：群列表、群详情、成员、公告、群文件、聊天搜索
+
+5.3 发现（pages/social/DiscoverPage.ets）
+  - 学习社区：发帖、分类（学习分享/求助）、点赞、评论、楼中楼
+  - 帖子详情、搜索、一键已读
+  - 关注列表与作者主页入口
+
+5.4 消息（pages/social/MessagePage.ets）
+  - 消息中心分类：系统通知、互动、作业批阅、好友消息等
+  - 私聊聊天页、添加好友、好友推荐
+  - 未读总数与发现页新内容红点
+
+5.5 学习工具
+  - 待办（pages/study/TodoPage.ets）：增删改、优先级、分类
+  - 日程（pages/study/SchedulePage.ets）：列表/本周两种视图、
+    今日/后续/已过期分组、过去时间校验
+  - 课表（pages/study/CourseTablePage.ets）：周/月视图、
+    ICS 与 XLSX 导入、CSV 导出、本地模拟云端同步、上课提醒
+  - 笔记（pages/study/NotePage.ets 等）：笔记本分类、标签、
+    全文搜索、回收站、图片、权限（私有/课程可见/公开）、
+    分享码、版本冲突处理、离线草稿、模拟云端同步
+  - 收藏、金币充值/消费、硬币明细
+
+5.6 教师端
+  - 课堂签到（位置/验证码/图案，GeoHelper 计算距离）
+  - 随堂练习发布与作答（切屏提醒）
+  - 调查问卷、随机抽选、积分规则、任务管理、数据查看
+  - 作业发布与批阅、题库、助教管理、成绩报告
+  - 教师成就体系
+
+5.7 我的（pages/common/MinePage.ets 等）
+  - 个人资料、昵称、头像（相册选择与上传策略校验）
+  - 深/浅色模式、聊天背景主题
+  - 隐私设置、第三方绑定、账号安全（改密码/换手机号）
+  - 存储审计、意见反馈、关于、隐私政策
+
+5.8 成长与金币
+  - GrowthModel：经验、等级、每日登录奖励
+  - 金币：充值、投币、免费任务领取、消费记录
+  - 成就解锁与教师成就
+
+六、数据、模型与工具层
+------------------------------------------------------------
+1. 主要模型（model/）
+   DataModel          待办/日程/笔记/收藏/帖子/消息/教师等核心实体与种子
+   TimetableModel     课表实体、周次与时间计算、复制
+   CourseModel        课程、打卡、成就、语言与等级
+   HomeworkModel      作业、提交、学生进度、教师成就
+   GroupModel         班级群、公告、群文件、举报
+   MessageCenterModel 消息分类与消息中心作用域
+   PermissionModel    角色与可见性、助教权限、动作权限
+   GrowthModel        经验/等级/金币/每日登录
+   QuestionBankModel  题库
+   ResourceModel      上传资源
+   ReviewModel        教师匿名评价
+   InteractionModel   任务与积分规则
+   SubjectModel/SubjectContent、WordData/GrammarData 及
+   Ja/Ko/Zh 多语种词法数据、LevelTraining、AvatarModel、
+   ChatTheme、TabItem 等
+2. 工具类（utils/）
+   ThemeColor         深浅色颜色表
+   Guard              页面级权限守卫与统一提示
+   Feedback           成功/失败/二次确认统一反馈
+   NetworkState       本地模拟弱网与离线开关
+   OfflineDraft       表单离线草稿与版本冲突
+   NoteSync           笔记「云端」模拟同步
+   NoteShare          分享码/链接生成
+   TimetableSync      课表「云端」模拟同步
+   IcsImporter        课表 ICS 导入
+   XlsxImporter       课表 Excel 导入
+   CsvExport          CSV 导出
+   CourseReminder     系统 reminderAgent 上课提醒
+   GeoHelper          定位与距离计算（签到）
+   UploadPolicy       上传大小/类型统一策略
+3. 公共组件（components/）
+   StatusViews        空状态、加载、错误等状态视图
+   NoteDialogs        笔记相关弹窗（新建/重命名/移动/分享）
+   TaskDialogs        互动任务相关弹窗
+
+七、主题与多端适配
+------------------------------------------------------------
+1. 颜色令牌：resources/base/element/color.json（浅色）与
+   resources/dark/element/color.json（深色）成对维护。
+2. ThemeColor.get(name) 提供 isDark 判断下的取色能力，
+   新增颜色只需在 COLOR_TABLE 中加一行。
+3. 模式切换：colorModeSetting 持久化，EntryAbility 启动时
+   调用 setColorMode；我的页可实时切换。
+4. 布局：以 vp 尺寸与百分比宽度为主，页面适配 phone/tablet/2in1；
+   底部 Tab 固定 5 项，红点使用悬浮角标避免挤压图标。
+
+八、工程约定与代码规模
+------------------------------------------------------------
+1. 页面命名与路径：pages/<业务域>/<功能>Page.ets，
+   新页面需在 resources/base/profile/main_pages.json 注册。
+2. 弹窗统一使用 @CustomDialog + CustomDialogController，
+   复用 components 下的弹窗组件。
+3. 全局数据统一走 AppStorage / PersistentStorage，
+   页面用 @StorageLink 双向绑定，避免手工传参不同步。
+4. 权限与可见性集中在 PermissionModel / Guard 中判断，
+   不允许各页面自行硬编码角色判断。
+5. 操作反馈优先使用 promptAction 或 Feedback 统一封装。
+6. 页面清单（路由注册，共 72 个）：
+   Index、LoginPage
+   TodoPage、SchedulePage、CourseTablePage、NotePage、NoteDetailPage、
+   NoteEditorPage、FavoritesPage、CoinPage、PracticePage、TaskPage、
+   PointsPage、SurveyPage、RandomPickPage、DataViewPage、SigninPage
+   WordMemoryPage、GrammarPage、SpeakingPage、ListeningPage、LevelPage、
+   SubjectDetailPage、ChapterPage、ClassGroupPage、GroupInfoPage、
+   GroupListPage、GroupCreatePage、NoticeEditPage、GroupFilesPage、
+   ChatSearchPage、ReportPage、HomeworkPage、MyCoursesPage、
+   QuestionBankPage、AssistantManagePage、TeacherPage
+   DiscoverPage、PostDetailPage、SearchPage、ChatPage、FollowPage
+   SettingsPage、StorageAuditPage、ProfilePage、ThirdPartyBindPage、
+   PrivacySettingsPage、ChangePasswordPage、ChangePhonePage、
+   FeedbackPage、AboutPage、PolicyPage、WebViewPage
+   以及 subjects/ 下 22 个学科专题页（语文、数学、英语、英语中学、
+   日语、韩语、物理、化学、生物、历史、地理、政治、高数、大学物理、
+   大学化学、计算机基础、C 语言、现代汉语、心理学、微观经济学等）。
+7. 代码规模（entry/src/main/ets）：
+   model 26 个文件、utils 14 个、components 3 个、pages 80 个，
+   合计 125 个 .ets、约 37,234 行。
+
+九、测试与质量
+------------------------------------------------------------
+1. 本地单测：entry/src/test/LocalUnit.test.ets、List.test.ets
+2. 设备测试：entry/src/ohosTest/ets/test/Ability.test.ets 等
+3. Mock：entry/src/mock/mock-config.json5
+4. 代码规范：code-linter.json5；构建开启严格模式
+   （caseSensitiveCheck、useNormalizedOHMUrl）
+5. 构建方式：使用 DevEco Studio 5.0（API 17）打开工程目录，
+   选择 entry 模块运行到模拟器或真机；构建脚本由 Hvigor 管理。
+
+十、已知边界与后续建议
+------------------------------------------------------------
+1. 无真实后端：登录、笔记云同步、课表云同步、消息中心、班级群
+   等均为本地模拟，接口形态已按真实场景设计（push/pull、
+   冲突合并），后续接入服务端时可替换 utils 下的模拟实现。
+2. 提醒与定位依赖系统能力与权限，模拟器可能不支持提醒发布，
+   代码会返回明确失败原因，不会假装成功。
+3. 数据全部存于本机，卸载应用或「清空本地数据」后需要重新灌入
+   演示种子。
+4. 建议后续补充：真实账号体系与鉴权、服务端同步与冲突合并策略、
+   资源内容审核后台、自动化 UI 测试覆盖核心闭环。
+5. 产品需求与验收说明见根目录「学习软件介绍.html」。
+
+============================================================
+文档生成时间：2026-11-23
+============================================================

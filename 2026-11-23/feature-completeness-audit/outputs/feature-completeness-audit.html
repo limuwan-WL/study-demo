@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能完整性审查 · 学习软件（HarmonyOS / ArkTS）</title>
+<style>
+  :root{
+    --ink:#0f172a; --ink-2:#334155; --muted:#64748b; --line:#e2e8f0;
+    --bg:#f6f8fb; --card:#ffffff; --brand:#1d4ed8; --brand-weak:#e8efff;
+    --ok:#0f8a5f; --ok-bg:#e7f6ef; --part:#a15c00; --part-bg:#fdf2dc;
+    --no:#b42318; --no-bg:#fdeceb; --shadow:0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px}
+  header.hero{
+    background:linear-gradient(135deg,#0b1b3f 0%,#12306b 55%,#1d4ed8 100%);
+    color:#fff;border-radius:20px;padding:38px 38px 32px;box-shadow:var(--shadow);
+  }
+  .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b9cdf8}
+  h1{font-size:30px;line-height:1.3;margin:10px 0 8px;font-weight:700}
+  .sub{color:#dbe6ff;font-size:14px;max-width:900px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.18);font-size:12.5px;color:#c9d8fb}
+  .meta b{color:#fff;font-weight:600}
+  h2{font-size:21px;margin:46px 0 14px;padding-bottom:9px;border-bottom:2px solid var(--line);font-weight:700}
+  h3{font-size:16px;margin:26px 0 10px;font-weight:700;color:var(--ink)}
+  p{margin:9px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow)}
+  .verdict{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+  @media (max-width:860px){.verdict{grid-template-columns:1fr}}
+  .big{font-size:19px;font-weight:700;line-height:1.6;margin:0 0 6px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+  .stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center}
+  .stat .n{display:block;font-size:26px;font-weight:800;line-height:1.2}
+  .stat .l{font-size:11.5px;color:var(--muted)}
+  .n.ok{color:var(--ok)} .n.part{color:var(--part)} .n.no{color:var(--no)}
+  ul,ol{margin:8px 0 8px 22px;padding:0}
+  li{margin:5px 0}
+  .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;line-height:1.7}
+  .chip.ok{background:var(--ok-bg);color:var(--ok)}
+  .chip.part{background:var(--part-bg);color:var(--part)}
+  .chip.no{background:var(--no-bg);color:var(--no)}
+  .chip.sim{background:#eef2ff;color:#3730a3}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13.5px}
+  th,td{padding:11px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  th{background:#f1f5f9;font-weight:700;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fbfdff}
+  td.num{color:var(--muted);font-variant-numeric:tabular-nums;width:42px}
+  td.st{white-space:nowrap;width:96px}
+  .grp td{background:#eef4ff!important;color:#14328c;font-weight:700;font-size:12.5px;letter-spacing:.02em}
+  a{color:var(--brand);text-decoration:none;border-bottom:1px solid rgba(29,78,216,.25)}
+  a:hover{border-bottom-color:var(--brand)}
+  code,.code{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:12px;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#1e293b;word-break:break-all}
+  .ev{font-size:12.5px;color:var(--ink-2)}
+  .ev .why{display:block;color:var(--muted);margin-top:3px}
+  .prio{display:grid;gap:14px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .pcard.p0{border-left-color:var(--no)} .pcard.p1{border-left-color:var(--part)} .pcard.p2{border-left-color:#2563eb}
+  .pcard h4{margin:0 0 6px;font-size:15.5px}
+  .tag{font-size:10.5px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:4px;margin-right:8px;vertical-align:2px}
+  .p0 .tag{background:var(--no-bg);color:var(--no)} .p1 .tag{background:var(--part-bg);color:var(--part)} .p2 .tag{background:#e8efff;color:#1d4ed8}
+  .pcard p{margin:5px 0;font-size:13.5px}
+  .pcard .lbl{color:var(--muted);font-size:12px;font-weight:600}
+  .note{background:#fffdf5;border:1px solid #f3e3b3;border-radius:12px;padding:16px 18px;font-size:13.5px}
+  .note b{color:#7a4b00}
+  .foot{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:10px 0 0}
+  .tw{overflow-x:auto;border-radius:14px}
+  .mono{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Feature Completeness Audit</div>
+  <h1>学习软件功能完整性审查</h1>
+  <div class="sub">以根目录《学习软件介绍.html》为验收基线，逐条对照 HarmonyOS（ArkTS）工程的实际实现；区分「已实现 / 部分实现 / 未实现」，并单独标出只做界面、链路断开、占位与模拟实现。</div>
+  <div class="meta">
+    <span><b>审查对象</b> f:\25570737\harmony\tab</span>
+    <span><b>工程规模</b> 125 个 .ets，约 37,200 行</span>
+    <span><b>基线文档</b> 学习软件介绍.html</span>
+    <span><b>日期</b> 2026-11-23</span>
+    <span><b>方式</b> 源码通读 + 全仓检索交叉验证</span>
+  </div>
+</header>
+
+<h2>一、总体判断</h2>
+<div class="verdict">
+  <div class="card">
+    <p class="big">结论：这是一个「主流程完整、可直接演示」的本地原型，不是空壳；但金币运营模块与少数承诺功能存在明确缺口。</p>
+    <p>核心业务闭环（首页 → 笔记 / 课表 → 课程章节 / 讲师 → 班级群 → 签到 / 练习 / 问卷 / 抽选 / 积分 / 任务 → 台账 → 消息 → 设置）全部有真实交互逻辑，跨页面数据通过 AppStorage + PersistentStorage 共享，并非纯静态页面。</p>
+    <p>按 73 个可核对功能点统计：<b>59 项完全实现</b>（其中 5 项为 UI 已标注的本地模拟）、<b>8 项部分实现</b>、<b>6 项未实现</b>（完全实现率约 81%，有实现率约 92%）。缺口高度集中在「金币 / 社区运营」与「导入增强」两条支线。</p>
+    <p>需要明确的前提：工程无后端，云端同步、多端同步、内容审核、虚拟定位、云端文件均为<b>本地模拟且 UI 已标注</b>。这是《介绍》第 8/9 节承认的工程边界，不应算功能缺失，但也不能当作「可上线」。</p>
+  </div>
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><span class="n ok">59</span><span class="l">已实现</span></div>
+      <div class="stat"><span class="n part">8</span><span class="l">部分实现</span></div>
+      <div class="stat"><span class="n no">6</span><span class="l">未实现</span></div>
+    </div>
+    <h3 style="margin-top:18px">最该先补的 4 件事</h3>
+    <ol style="margin-left:18px">
+      <li><b>随堂练习批量导入题目（JSON）</b>——说明文档有完整交互，工程内完全无实现。</li>
+      <li><b>金币投币链路</b>——只能在金币页内自娱自乐，没有内容对象、没有作者侧记录。</li>
+      <li><b>账号注销 + 金币清零</b>——全仓无注销入口与逻辑。</li>
+      <li><b>金币高频风控 / 充值失败重试</b>——只有成功路径。</li>
+    </ol>
+    <div class="legend">
+      <span><span class="chip ok">已实现</span> 有界面且有可验证逻辑</span>
+      <span><span class="chip part">部分</span> 有主体，缺关键子能力</span>
+      <span><span class="chip no">未实现</span> 无代码或无入口</span>
+    </div>
+  </div>
+</div>
+
+<h2>二、功能对照总表</h2>
+<p class="ev" style="color:var(--muted)">状态依据均为源码位置；「未实现」的判断同时经过全仓关键词检索（如 <code>导入题目 / 导入模板 / 开票 / 注销 / 风控</code>）确认无对应实现。链接可直接跳到源码行。</p>
+
+<div class="tw">
+<table>
+<thead>
+<tr><th>#</th><th>功能点（对应《介绍》条目）</th><th>状态</th><th>判断依据</th></tr>
+</thead>
+<tbody>
+
+<tr class="grp"><td colspan="4">4.1 首页 · FR-S-01 / FR-S-02</td></tr>
+<tr>
+  <td class="num">1</td>
+  <td>首页「我的笔记」快捷卡片：显示最近笔记；无笔记时引导「暂无笔记，点击进入新建」</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/HomePage.ets#L46-L49">HomePage.ets:46-49</a> 生成摘要文案；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/HomePage.ets#L103">:103</a> 卡片跳转 <code>NotePage</code>。空态文案与要求一致。</td>
+</tr>
+<tr>
+  <td class="num">2</td>
+  <td>首页课程卡片：无课表时引导导入；有课表时展示今日课程；点击进入课表</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/HomePage.ets#L52-L63">HomePage.ets:52-63</a> 按今日课程计算副标题；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/HomePage.ets#L107-L131">:107-131</a> 跳转 <code>CourseTablePage</code>。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">4.2 课表 · FR-S-02 / S-03 / S-04</td></tr>
+<tr>
+  <td class="num">3</td>
+  <td>周视图（默认）/ 月视图、日期切换；课程格展示课程名 / 地点 / 教师 / 时段</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L487-L489">CourseTablePage.ets:487-489</a> 默认 <code>viewMode='week'</code>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L551-L620">:551-620</a> 周/月两套视图；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L1064-L1075">:1064-1075</a> 格子内四类字段。</td>
+</tr>
+<tr>
+  <td class="num">4</td>
+  <td>课程自动配色 + 单门改色 + 表格主题切换 + 同时段冲突叠标/弹窗 + 无数据引导</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L541-L546">:541-546</a> 主题调色板；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L163-L180">:163-180</a> 主题切换弹窗；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L365">:365</a> 支持单课改色；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L1032">:1032</a> 同一时段多课弹出全部课程。</td>
+</tr>
+<tr>
+  <td class="num">5</td>
+  <td>.ics / .xlsx 导入、失败原因提示、覆盖导入 / 追加导入</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/IcsImporter.ets#L224-L351">IcsImporter.ets:224-351</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/XlsxImporter.ets#L279-L464">XlsxImporter.ets:279-464</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L105-L109">CourseTablePage.ets:105-109</a> 两种模式；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L950">:950</a> 失败提示文案。</td>
+</tr>
+<tr>
+  <td class="num">6</td>
+  <td>导入前预览 + 字段映射「可手动调整」</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L77-L82">CourseTablePage.ets:77-82</a> 只有只读的「字段自动映射」标签，无下拉/重选映射控件；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/XlsxImporter.ets#L279-L320">XlsxImporter.ets:279-320</a> 表头识别为全自动。<span class="why">缺「手动调整映射」这一个子能力，其余导入流程完整。</span></td>
+</tr>
+<tr>
+  <td class="num">7</td>
+  <td>本地缓存 + 云端同步（换设备恢复）</td>
+  <td class="st"><span class="chip sim">已实现（本地模拟）</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/TimetableSync.ets#L1-L60">TimetableSync.ets:1-60</a> push/pull 按账号快照，UI 明确标注「本地模拟云端（无真实后端）」。<span class="why">属工程边界，不算缺失。</span></td>
+</tr>
+<tr>
+  <td class="num">8</td>
+  <td>单门课程课前提醒 + P2 课表导出为图片</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L374">:374</a> 课前推送说明；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/CourseReminder.ets#L1-L60">CourseReminder.ets</a> 提醒逻辑；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L779-L802">:779-802</a> <code>componentSnapshot</code> 导出 PNG，<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L1268">:1268</a> 入口。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">4.2 笔记 · FR-S-05 ~ S-10 + P2</td></tr>
+<tr>
+  <td class="num">9</td>
+  <td>全文搜索（标题/正文/标签）+ 结果高亮 + 创建/修改时间排序</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L132-L140">NotePage.ets:132-140</a> 过滤与排序；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L559-L580">:559-580</a> 命中片段高亮；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L713-L718">:713-718</a> 排序切换。</td>
+</tr>
+<tr>
+  <td class="num">10</td>
+  <td>笔记本新增 / 重命名 / 删除 / 拖拽排序；默认笔记本不可删</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L326-L388">NotePage.ets:326-388</a> 笔记本 CRUD、默认本保护、删除时笔记迁移。</td>
+</tr>
+<tr>
+  <td class="num">11</td>
+  <td>列表项字段（标题/摘要/修改时间/所属本/标签）+ 左滑：置顶 / 移动分类 / 删除 / 分享</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L610-L614">NotePage.ets:610-614</a> 列表字段；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L655-L675">:655-675</a> 四个滑动按钮。</td>
+</tr>
+<tr>
+  <td class="num">12</td>
+  <td>编辑器：图文、图片、拍照、插入链接、实时自动保存、自定义标签</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NoteEditorPage.ets#L1-L40">NoteEditorPage.ets</a> 导入 photoAccessHelper 并实现自动保存/标签；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NoteEditorPage.ets#L489-L545">:489-545</a> 工具栏含图片/拍照/链接。</td>
+</tr>
+<tr>
+  <td class="num">13</td>
+  <td>权限：默认私有 / 仅课程内 / 公开 + 生成分享链接</td>
+  <td class="st"><span class="chip sim">已实现（本地模拟）</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NoteDetailPage.ets#L70-L82">NoteDetailPage.ets:70-82</a> 生成并复制分享链接；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/PermissionModel.ets#L1-L80">PermissionModel</a> 按角色过滤可见笔记。<span class="why">无真实外链服务，符合无后端现状。</span></td>
+</tr>
+<tr>
+  <td class="num">14</td>
+  <td>回收站 30 天 / 恢复 / 永久删除二次确认 / 到期自动清理</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L175-L188">NotePage.ets:175-188</a> 30 天计算与自动清理；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L453-L482">:453-482</a> 恢复/永久删/清空；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L687-L690">:687-690</a> 操作按钮。</td>
+</tr>
+<tr>
+  <td class="num">15</td>
+  <td>离线编辑、联网同步、版本冲突弹窗选择保留版本</td>
+  <td class="st"><span class="chip sim">已实现（本地模拟）</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/NoteSync.ets#L117-L157">NoteSync.ets:117-157</a> synced/conflict 状态流转；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L860-L905">NotePage.ets:860-905</a> 冲突弹窗（显示双方修改时间与差异摘要）。</td>
+</tr>
+<tr>
+  <td class="num">16</td>
+  <td>P2：笔记分享到班级群；笔记引用课件/视频时间节点</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/components/NoteDialogs.ets#L1-L120">NoteDialogs.ets</a> 分享到班级群弹窗；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NoteEditorPage.ets#L587-L610">NoteEditorPage.ets:587-610</a> 引用课件/时间点写入正文。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">4.3 课程与讲师 · FR-S-10a / S-11 / S-12</td></tr>
+<tr>
+  <td class="num">17</td>
+  <td>课程 Tab 学科入口 + 课程详情「课程导学 / 各讲知识点 / 阶段测评」章节列表</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/CoursePage.ets#L1-L60">CoursePage.ets</a> 学科入口；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/SubjectDetailPage.ets#L98-L155">SubjectDetailPage.ets:98-155</a> 章节列表与序号/时长/试看标签。</td>
+</tr>
+<tr>
+  <td class="num">18</td>
+  <td>点章节进入独立章节页：页头、环节说明、学习目标、重点、随堂练习、建议、视频、上一讲/下一讲</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/SubjectDetailPage.ets#L209-L243">SubjectDetailPage.ets:209-243</a> 携带完整参数跳转；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ChapterPage.ets#L53-L159">ChapterPage.ets:53-159</a> 按章节生成不同模块；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ChapterPage.ets#L173-L252">:173-252</a> 页头与视频入口。</td>
+</tr>
+<tr>
+  <td class="num">19</td>
+  <td>授课名师横向轮播：不自动播放、手动滑动、分页圆点、一课程多教师、点击进主页</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/CoursePage.ets#L457-L500">CoursePage.ets:457-500</a> <code>Swiper</code> + <code>autoPlay(false)</code> + 自绘圆点；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/CoursePage.ets#L329">:329</a> 跳转讲师页；数据来自持久化 <code>teacherList</code>（<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/CoursePage.ets#L66">:66</a>）。</td>
+</tr>
+<tr>
+  <td class="num">20</td>
+  <td>讲师主页：履历、研究方向、开设课程（本校/公开）、公开课件、简介折叠、头像兜底、教师维护资料、跳课程、关注</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L123-L168">TeacherPage.ets:123-168</a> 读取持久化教师并限本人编辑；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L236-L267">:236-267</a> 课程分类与关注；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L311-L320">:311-320</a> 头像兜底。</td>
+</tr>
+<tr>
+  <td class="num">21</td>
+  <td>讲师公开课件资源「可查看/下载」</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev">列表与条目存在，但点击只弹 Toast：<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L306-L308">TeacherPage.ets:306-308</a> <code>openMaterial()</code> 仅提示「开始下载」，没有文件读取或预览。<span class="why">界面在、功能壳。</span></td>
+</tr>
+<tr>
+  <td class="num">22</td>
+  <td>未加入课程的学生 / 非授课教师访问课程页被拦截并提示</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/SubjectDetailPage.ets#L39-L55">SubjectDetailPage.ets:39-55</a> 统一走 <code>Permission.canAccessCourse</code>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/MyCoursesPage.ets#L62-L73">MyCoursesPage.ets:62-73</a> 同样拦截。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">4.4 关注 · FR-S-13 / S-14</td></tr>
+<tr>
+  <td class="num">23</td>
+  <td>关注页：分类筛选（教师/课程/公开笔记/活动）、红点、快速取消、按更新时间/关注时间排序、搜索仅限已关注</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/FollowPage.ets#L48-L64">FollowPage.ets:48-64</a> 仅在关注集合内过滤/搜索/排序；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/FollowPage.ets#L151-L165">:151-165</a> 封面/标题/时间/红点；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/FollowPage.ets#L118-L133">:118-133</a> 一步取消关注。</td>
+</tr>
+<tr>
+  <td class="num">24</td>
+  <td>关注「活动」项可查看活动详情</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/FollowPage.ets#L115">FollowPage.ets:115</a> 点击只提示「活动详情暂未开放」，无活动详情页/数据模型。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">4.5 金币 · FR-S-15 / S-16 / S-17</td></tr>
+<tr>
+  <td class="num">25</td>
+  <td>微信/支付宝/银行卡三渠道、1 元 = 10 金币、自定义档位、生成订单</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L49-L58">CoinPage.ets:49-58</a> 按档位换算并写订单/记录；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L240-L300">:240-300</a> 渠道与自定义金额 UI。<span class="why">支付为本地成功模拟。</span></td>
+</tr>
+<tr>
+  <td class="num">26</td>
+  <td>充值记录、收支明细、余额、开票入口</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L60-L93">:60-93</a> 开票申请（状态 applied、写消息中心）；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L333-L365">:333-365</a> 订单/收支明细列表。</td>
+</tr>
+<tr>
+  <td class="num">27</td>
+  <td>金币用于「对内容点赞 / 投币」，点赞免费、投币最低 1 金币</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L101-L110">CoinPage.ets:101-110</a> 投币只是金币页内的演示卡片；全仓检索 <code>投币</code> 仅命中 CoinPage，笔记/帖子详情无投币入口，也无被投币的内容对象。最低 1 金币、余额校验已做。</td>
+</tr>
+<tr>
+  <td class="num">28</td>
+  <td>投币记录作者可见</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/DataModel.ets#L509-L521">DataModel.ets:509-521</a> <code>CoinRecord</code> 只有 type/amount/desc/time，无内容 id、无作者字段；作者侧无任何查询入口。</td>
+</tr>
+<tr>
+  <td class="num">29</td>
+  <td>不可提现/转赠、无有效期、账号注销时金币清零二次确认</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L247-L260">CoinPage.ets:247-260</a> 有余额与用途说明；但全仓无「注销」字样与注销流程，清零提示无从触发。</td>
+</tr>
+<tr>
+  <td class="num">30</td>
+  <td>充值回调失败 / 失败重试</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L49-L58">CoinPage.ets:49-58</a> 充值同步直接成功，无 pending/failed 状态、无重试入口。</td>
+</tr>
+<tr>
+  <td class="num">31</td>
+  <td>高频充值 / 高频投币触发风控校验</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev">全仓检索 <code>风控 / risk / 限频</code> 无业务实现；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L101-L110">CoinPage.ets:101-110</a> 连续投币无任何频率限制。</td>
+</tr>
+<tr>
+  <td class="num">32</td>
+  <td>P2：金币免费获取渠道（完成内容发布任务领金币）</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L15-L18">CoinPage.ets:15-18</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L124-L150">:124-150</a> 每日一次、按是否已有公开笔记/帖子判定领取资格。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">5.1 课堂签到 · FR-T-01 / T-02</td></tr>
+<tr>
+  <td class="num">33</td>
+  <td>位置 / 数字验证码 / 图案三种签到；台账导出、手动补签、标记请假、有效时长与超时自动关闭</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L177-L224">SigninPage.ets:177-224</a> 创建与配置；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L227-L314">:227-314</a> 刷新码/结束/补签/请假/导出；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L808-L850">InteractionModel.ets:808-850</a> 台账行。</td>
+</tr>
+<tr>
+  <td class="num">34</td>
+  <td>位置签到半径与虚拟定位校验</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/GeoHelper.ets#L19-L55">GeoHelper.ets:19-55</a> 真实定位 + Haversine 距离判定；但「虚拟定位」只能在页面上勾选开关并据此拦截，<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L350-L422">SigninPage.ets:350-422</a> 无系统级模拟位置识别能力。<span class="why">《介绍》Q6 也把它列为待确认项。</span></td>
+</tr>
+<tr>
+  <td class="num">35</td>
+  <td>验证码可刷新、到期失效；图案一次性失效</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L227-L260">SigninPage.ets:227-260</a> 刷新/重绘；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L350-L422">:350-422</a> 过期与 <code>patternUsed</code> 一次性校验。</td>
+</tr>
+<tr>
+  <td class="num">36</td>
+  <td>签到开始推送（班级群 + 消息 Tab）、学生端签到</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L466-L472">InteractionModel.ets:466-472</a> <code>notifyTask</code> 同时写群消息与消息中心；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L350-L422">SigninPage.ets:350-422</a> 学生校验与提交。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">5.2 随堂练习 · FR-T-03 / T-04 / T-05</td></tr>
+<tr>
+  <td class="num">37</td>
+  <td>限时/永久开放、迟交开关与扣分比例、提交次数、是否允许改答案</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L327-L394">PracticePage.ets:327-394</a> 发布/结束/撤回与规则配置；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L565-L656">InteractionModel.ets:565-656</a> 迟交扣分、次数与改答判定。</td>
+</tr>
+<tr>
+  <td class="num">38</td>
+  <td>六种题型：单选/多选/判断/填空/简答/图片上传</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L809-L814">PracticePage.ets:809-814</a> 六个新增按钮；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L524-L540">:524-540</a> 学生图片作答。</td>
+</tr>
+<tr>
+  <td class="num">39</td>
+  <td>客观题自动判分、主观题教师批阅、答案解析时机</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L565-L656">InteractionModel.ets:565-656</a> 判分与 <code>analysisVisible</code>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L396-L486">PracticePage.ets:396-486</a> 主观批阅并写消息。</td>
+</tr>
+<tr>
+  <td class="num">40</td>
+  <td>批量导入题目：JSON 模板下载、追加/覆盖导入</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev">全仓检索 <code>导入题目 / 导入模板 / 下载模板 / json 导入</code> 无匹配；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L809-L814">PracticePage.ets:809-814</a> 仅支持逐题手动新增，<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L282-L312">:282-312</a> 无文件选择与解析。</td>
+</tr>
+<tr>
+  <td class="num">41</td>
+  <td>P2：题目乱序、作答切屏提醒</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L53-L58">PracticePage.ets:53-58</a> 稳定乱序与 <code>appBgStamp</code> 监听；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L956-L960">:956-960</a> 开关。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">5.3 ~ 5.7 问卷 / 抽选 / 积分 / 任务 / 数据</td></tr>
+<tr>
+  <td class="num">42</td>
+  <td>问卷：单选/多选/简答/量表，匿名/实名</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SurveyPage.ets#L1-L120">SurveyPage.ets</a> 题型与匿名配置；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SurveyPage.ets#L278-L295">:278-295</a> 提交时按匿名模式脱敏（空学生标识）。</td>
+</tr>
+<tr>
+  <td class="num">43</td>
+  <td>抽选：全部/未签到/未提交池、通知、拒绝备注、台账</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/RandomPickPage.ets#L30-L190">RandomPickPage.ets:30-190</a> 三类池与抽选；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/RandomPickPage.ets#L190-L310">:190-310</a> 通知、拒绝备注、记录台账。</td>
+</tr>
+<tr>
+  <td class="num">44</td>
+  <td>积分：行为分值配置、单次/总上限、课程开关、台账导出、学生个人明细</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PointsPage.ets#L29-L120">PointsPage.ets:29-120</a> 教师配置与上限；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PointsPage.ets#L200-L280">:200-280</a> 学生明细/助教只读与导出。</td>
+</tr>
+<tr>
+  <td class="num">45</td>
+  <td>任务管理：定时发布、提前结束、撤回、状态流转</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/TaskPage.ets#L41-L147">TaskPage.ets:41-147</a> 定时/提前结束/撤回；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L522-L557">InteractionModel.ets:522-557</a> <code>launchTask / endTask / withdrawTask</code>。</td>
+</tr>
+<tr>
+  <td class="num">46</td>
+  <td>数据查看：签到台账（已/未签）、练习与问卷统计、导出</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/DataViewPage.ets#L84-L128">DataViewPage.ets:84-128</a> 补签/请假/导出；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/DataViewPage.ets#L130-L190">:130-190</a> 参与人数、平均分、正确率、未提交名单。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">6 班级群 · FR-C-01 ~ C-10</td></tr>
+<tr>
+  <td class="num">47</td>
+  <td>群详情面板：成员搜索、课程/授课教师、公告、免打扰、文件归档、记录检索、清空本地、举报、全成员、退出课程</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L75-L80">GroupInfoPage.ets:75-80</a> 成员搜索；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L121-L130">:121-130</a> 免打扰；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L181-L228">:181-228</a> 清空/退出确认；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L540-L580">:540-580</a> 文件/检索/举报入口。</td>
+</tr>
+<tr>
+  <td class="num">48</td>
+  <td>建群权限：默认仅教师，助教建群可配置；一课程一主群 + 多子群</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/GroupModel.ets#L147-L159">GroupModel.ets:147-159</a> 权限判定；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L616-L630">GroupInfoPage.ets:616-630</a> 教师开关；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupCreatePage.ets#L29-L35">GroupCreatePage.ets:29-35</a> 页面级拦截。</td>
+</tr>
+<tr>
+  <td class="num">49</td>
+  <td>群公告：轻量富文本、附件、已读未读、置顶、修改后推送</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L323-L385">GroupInfoPage.ets:323-385</a> 已读人数/置顶/标记已读；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/GroupModel.ets#L505-L535">GroupModel.ets:505-535</a> 标记语法转 RichText；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/NoticeEditPage.ets#L150-L220">NoticeEditPage.ets:150-220</a> 编辑工具栏与附件。</td>
+</tr>
+<tr>
+  <td class="num">50</td>
+  <td>群文件：自动归档、分类/时间筛选、过期清理、批量下载</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupFilesPage.ets#L37-L49">GroupFilesPage.ets:37-49</a> 分类与时间筛选；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupFilesPage.ets#L76-L92">:76-92</a> 批量下载只把 <code>downloaded</code> 置 true 并提示「本地模拟云端存储」，无真实下载。</td>
+</tr>
+<tr>
+  <td class="num">51</td>
+  <td>聊天记录检索（关键词/发送人/时间/类型）+ 清空本地保留云端</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ChatSearchPage.ets#L45-L72">ChatSearchPage.ets:45-72</a> 多条件过滤；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/GroupModel.ets#L348-L368">GroupModel.ets:348-368</a> 本地清空与云端归档分离。</td>
+</tr>
+<tr>
+  <td class="num">52</td>
+  <td>角色权限表（公告/台账/批阅/改配置/学分规则/删课/移出/解散转让）</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L597-L614">GroupInfoPage.ets:597-614</a> 权限逐项展示并附角色说明；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/PermissionModel.ets#L1-L80">PermissionModel.ets</a> 为集中判定源。<span class="why">「改配置/删课」目前只出现在权限表，没有操作页；《介绍》未定义该页面，见第六节歧义项。</span></td>
+</tr>
+<tr>
+  <td class="num">53</td>
+  <td>退出二次确认、权限收回、主讲不可退、移交群主、解散、移出学生</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L205-L228">GroupInfoPage.ets:205-228</a> 退出确认；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L634-L720">:634-720</a> 群主管理（移交/解散）；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/GroupModel.ets#L660-L740">GroupModel.ets:660-740</a> 移除成员/退出判定。</td>
+</tr>
+<tr>
+  <td class="num">54</td>
+  <td>举报：类型、截图（最多 3 张）、定位到具体消息</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ReportPage.ets#L80-L110">ReportPage.ets:80-110</a> 截图选择（上限 3 张）；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ReportPage.ets#L255-L300">:255-300</a> 举报类型与提交。</td>
+</tr>
+<tr>
+  <td class="num">55</td>
+  <td>群聊：文字/图片/文件/表情、2 分钟撤回、@成员、未读红点、多端同步</td>
+  <td class="st"><span class="chip sim">已实现（多端模拟）</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ClassGroupPage.ets#L1-L200">ClassGroupPage.ets</a> 多类型发送与撤回/@；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L555-L566">GroupInfoPage.ets:555-566</a> 多端同步明确提示为本地模拟。</td>
+</tr>
+<tr>
+  <td class="num">56</td>
+  <td>免打扰两种模式（完全屏蔽 / 保留红点）</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L121-L130">GroupInfoPage.ets:121-130</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/GroupModel.ets#L413-L424">GroupModel.ets:413-424</a> <code>off/reddot/block</code> 三态存储。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">7 全局能力 · 7.1 ~ 7.5</td></tr>
+<tr>
+  <td class="num">57</td>
+  <td>消息 Tab：七类分类、未读红点、全部已读、详情、作业批阅直达批注</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/MessageCenterModel.ets#L20-L35">MessageCenterModel.ets:20-35</a> 分类；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/MessagePage.ets#L167-L280">MessagePage.ets:167-280</a> 过滤/红点/全部已读；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/MessageCenterModel.ets#L233-L276">:233-276</a> 作业消息路由到 HomeworkPage。</td>
+</tr>
+<tr>
+  <td class="num">58</td>
+  <td>角色入口隔离（学生/教师/助教各自「我的」入口）</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/MinePage.ets#L780-L905">MinePage.ets:780-905</a> 按角色渲染两套入口；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/MinePage.ets#L860-L875">:860-875</a> 教师台账/批阅/题库入口。</td>
+</tr>
+<tr>
+  <td class="num">59</td>
+  <td>数据按身份隔离（消息、学分、签到、订单）</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev">消息按角色域存储（<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/MessageCenterModel.ets#L70-L110">MessageCenterModel.ets:70-110</a> <code>scopeKey = Permission.role()</code>）、积分按学生名过滤；但金币余额/订单为全局单例 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/entryability/EntryAbility.ets#L96-L100">EntryAbility.ets:96-100</a>，切换身份时被整体清零 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/MinePage.ets#L508-L510">MinePage.ets:508-510</a>，切回不恢复。</td>
+</tr>
+<tr>
+  <td class="num">60</td>
+  <td>页面级拦截（直接跳转也会校验并提示原因）</td>
+  <td class="st"><span class="chip part">部分实现</span></td>
+  <td class="ev">已覆盖：<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ClassGroupPage.ets#L110">ClassGroupPage.ets:110</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupListPage.ets#L27">GroupListPage.ets:27</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/DataViewPage.ets#L53">DataViewPage.ets:53</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L31-L36">CoinPage.ets:31-36</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/AssistantManagePage.ets#L17-L22">AssistantManagePage.ets:17-22</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupCreatePage.ets#L29-L35">GroupCreatePage.ets:29-35</a>。未覆盖：题库页仅限制新增/删除、不拦截学生进入（<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/QuestionBankPage.ets#L114-L142">QuestionBankPage.ets:114-142</a>）。</td>
+</tr>
+<tr>
+  <td class="num">61</td>
+  <td>资源上传：大小上限、图片压缩、三档可见性、内容审核</td>
+  <td class="st"><span class="chip sim">已实现（本地审核）</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/UploadPolicy.ets#L50-L90">UploadPolicy.ets:50-90</a> 校验→压缩→审核全链路，quality 60 重编码；上限常量见 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/ResourceModel.ets#L8-L9">ResourceModel.ets:8-9</a>（图片 5MB / 文件 20MB）；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/ResourceModel.ets#L59-L100">ResourceModel.ets:59-100</a> 关键词审核（文件头注明为模拟）。<span class="why">注意：文档交互演示标的是 10MB/50MB，实际实现为 5MB/20MB，见 P2-4。</span></td>
+</tr>
+<tr>
+  <td class="num">62</td>
+  <td>弱网：离线草稿、失败 Toast、空状态</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/OfflineDraft.ets#L1-L60">OfflineDraft.ets</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/NetworkState.ets#L1-L60">NetworkState.ets</a>；设置页开关 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/SettingsPage.ets#L191-L230">SettingsPage.ets:191-230</a>。</td>
+</tr>
+<tr>
+  <td class="num">63</td>
+  <td>助教：发布签到/查看台账/批阅作业/维护公告，不可改配置与学分、不可删课</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/AssistantManagePage.ets#L17-L110">AssistantManagePage.ets:17-110</a> 增删与权限；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/PermissionModel.ets#L1-L80">PermissionModel.ets</a> 限制项；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L606-L609">GroupInfoPage.ets:606-609</a> 助教只读说明。</td>
+</tr>
+<tr>
+  <td class="num">64</td>
+  <td>账号安全中的「注销账号」（二次确认 + 金币清零提示）</td>
+  <td class="st"><span class="chip no">未实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/SettingsPage.ets#L244-L255">SettingsPage.ets:244-255</a> 账号区只有改密/绑手机/绑三方；全仓检索 <code>注销</code> 零命中。</td>
+</tr>
+<tr>
+  <td class="num">65</td>
+  <td>通知规则：上课/签到/练习/公告/充值/举报/互动 按类型推送与可关闭</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/SettingsPage.ets#L19-L25">SettingsPage.ets:19-25</a> 六类开关；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/MessageCenterModel.ets#L175-L190">MessageCenterModel.ets:175-190</a> 按类型判定是否落消息。</td>
+</tr>
+
+<tr class="grp"><td colspan="4">8 P2 优化项</td></tr>
+<tr>
+  <td class="num">66</td>
+  <td>笔记分享到班级群</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/components/NoteDialogs.ets#L1-L120">NoteDialogs.ets</a>；调用处 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/NotePage.ets#L655-L675">NotePage.ets:655-675</a>。</td>
+</tr>
+<tr>
+  <td class="num">67</td>
+  <td>课表导出为图片</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L779-L802">CourseTablePage.ets:779-802</a> 使用 <code>componentSnapshot.get</code> 写入 PNG。</td>
+</tr>
+<tr>
+  <td class="num">68</td>
+  <td>金币免费获取</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L112-L150">CoinPage.ets:112-150</a>。</td>
+</tr>
+<tr>
+  <td class="num">69</td>
+  <td>题目乱序、切屏提醒</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L53-L58">PracticePage.ets:53-58</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L956-L960">:956-960</a>。</td>
+</tr>
+<tr>
+  <td class="num">70</td>
+  <td>班级群快捷签到入口</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/ClassGroupPage.ets#L80-L160">ClassGroupPage.ets:80-160</a> 群内快捷入口。</td>
+</tr>
+<tr>
+  <td class="num">71</td>
+  <td>讲师匿名评价</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L131-L224">TeacherPage.ets:131-224</a> 匿名评价与列表。</td>
+</tr>
+<tr>
+  <td class="num">72</td>
+  <td>签到/学分/练习台账 CSV 导出（Excel 可直接打开）</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/CsvExport.ets#L7-L23">CsvExport.ets:7-23</a> 带 BOM；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L808-L850">InteractionModel.ets:808-850</a> 台账行定义。</td>
+</tr>
+<tr>
+  <td class="num">73</td>
+  <td>待办自动汇总课程/签到/练习等</td>
+  <td class="st"><span class="chip ok">已实现</span></td>
+  <td class="ev"><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/TodoPage.ets#L222-L290">TodoPage.ets:222-290</a> 汇总课程、互动任务与手工待办。</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<h2>三、待补齐项（按优先级）</h2>
+<p class="ev" style="color:var(--muted)">P0 = 说明文档明确承诺但完全缺失或链路断裂；P1 = 有主体但关键子能力缺失；P2 = 模拟/体验问题，不影响主流程。</p>
+
+<div class="prio">
+
+  <div class="pcard p0">
+    <h4><span class="tag">P0-1</span>随堂练习批量导入题目（JSON 模板 / 追加 / 覆盖）</h4>
+    <p><span class="lbl">现状：</span>说明文档 5.2 给出了「下载导入模板 / 导入题目 / 追加导入 / 覆盖导入 / 确认导入」的完整交互，工程内没有任何对应实现。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L809-L814">PracticePage.ets:809-814</a> 只有六个「+ 题型」手动新增按钮；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/PracticePage.ets#L282-L312">:282-312</a> 为单题新增逻辑；全仓检索无 JSON 导入解析。</p>
+    <p><span class="lbl">影响：</span>教师只能逐题录入，30 题规模的随堂练习不可用。</p>
+  </div>
+
+  <div class="pcard p0">
+    <h4><span class="tag">P0-2</span>金币「投币」链路未接到内容与作者</h4>
+    <p><span class="lbl">现状：</span>投币是金币页里的一张独立演示卡，没有「给哪篇笔记/帖子投币」，也没有作者侧「收到投币」的记录。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L101-L110">CoinPage.ets:101-110</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/DataModel.ets#L509-L521">DataModel.ets:509-521</a> <code>CoinRecord</code> 无 targetId/author；全仓仅 CoinPage 出现「投币」。</p>
+    <p><span class="lbl">影响：</span>FR-S-16 承诺的「投币记录仅作者可见」无法成立。</p>
+  </div>
+
+  <div class="pcard p0">
+    <h4><span class="tag">P0-3</span>账号注销与金币清零二次确认</h4>
+    <p><span class="lbl">现状：</span>设置页账号区只有改密、绑手机、绑第三方，没有注销入口；全仓无注销逻辑。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/SettingsPage.ets#L244-L255">SettingsPage.ets:244-255</a>；全仓检索 <code>注销</code> 零命中。</p>
+    <p><span class="lbl">影响：</span>《介绍》9.3 与 FR-S-16 均要求注销时提示金币清零。</p>
+  </div>
+
+  <div class="pcard p0">
+    <h4><span class="tag">P0-4</span>金币高频风控 + 充值失败重试</h4>
+    <p><span class="lbl">现状：</span>充值/投币都是同步成功，缺少失败态、重试入口与频率限制（FR-S-15 / FR-S-17）。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L49-L58">CoinPage.ets:49-58</a> 充值直接入账；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CoinPage.ets#L101-L110">:101-110</a> 投币无限频；全仓无风控判断。</p>
+  </div>
+
+  <div class="pcard p1">
+    <h4><span class="tag">P1-1</span>课表导入字段「手动调整」缺失</h4>
+    <p><span class="lbl">现状：</span>预览页只展示自动识别出的映射标签，用户无法纠正错列。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L77-L82">CourseTablePage.ets:77-82</a>；表头识别在 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/XlsxImporter.ets#L279-L320">XlsxImporter.ets:279-320</a> 自动完成。</p>
+  </div>
+
+  <div class="pcard p1">
+    <h4><span class="tag">P1-2</span>讲师公开课件只能「假下载」</h4>
+    <p><span class="lbl">现状：</span>列表存在，点击仅 Toast。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/TeacherPage.ets#L306-L308">TeacherPage.ets:306-308</a>。<span class="lbl">建议：</span>复用群文件/上传策略的本地沙箱文件路径，打开预览或写入下载目录。</p>
+  </div>
+
+  <div class="pcard p1">
+    <h4><span class="tag">P1-3</span>关注「活动」无详情页</h4>
+    <p><span class="lbl">现状：</span>活动分类可见，点击提示「暂未开放」。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/social/FollowPage.ets#L115">FollowPage.ets:115</a>。这是唯一在已实现页面里明确写死的死胡同。</p>
+  </div>
+
+  <div class="pcard p1">
+    <h4><span class="tag">P1-4</span>金币/订单未按身份存储，切换身份即丢失</h4>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/entryability/EntryAbility.ets#L96-L100">EntryAbility.ets:96-100</a> 使用全局键；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/MinePage.ets#L508-L510">MinePage.ets:508-510</a> 切换身份时清空余额与订单。</p>
+    <p><span class="lbl">影响：</span>与 7.2「数据按身份分别存储」不符；教学数据（消息/积分）已隔离，唯独金币例外。</p>
+  </div>
+
+  <div class="pcard p1">
+    <h4><span class="tag">P1-5</span>题库页缺少页面级入口拦截</h4>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/QuestionBankPage.ets#L114-L142">QuestionBankPage.ets:114-142</a> 只在新增/删除时 <code>Guard.action</code>；学生直接跳转仍能看到题库列表。</p>
+    <p><span class="lbl">对照：</span>7.2 明确要求题库等教师页面「直接跳转也会被校验拦截并提示原因」。</p>
+  </div>
+
+  <div class="pcard p2">
+    <h4><span class="tag">P2-1</span>群文件批量下载、多端同步为占位模拟</h4>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupFilesPage.ets#L76-L92">GroupFilesPage.ets:76-92</a>；<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L555-L566">GroupInfoPage.ets:555-566</a>。UI 已明确标注，属工程边界；若验收口径要求「真实下载」则需后端或本地文件落盘。</p>
+  </div>
+
+  <div class="pcard p2">
+    <h4><span class="tag">P2-2</span>群详情「导出签到台账」实际跳的是任务管理页</h4>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L588-L590">GroupInfoPage.ets:588-590</a> 文案为「导出签到台账」，点击却 <code>pushUrl('pages/study/TaskPage')</code>，与「数据查看」页的导出能力不一致。建议改跳 <code>DataViewPage</code> 或直接触发 CSV 导出。</p>
+  </div>
+
+  <div class="pcard p2">
+    <h4><span class="tag">P2-3</span>虚拟定位检测为界面开关，非真实识别</h4>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/GeoHelper.ets#L19-L55">GeoHelper.ets:19-55</a> 只做定位与距离；<code>virtualCheck</code> 仅作为任务配置项。<span class="lbl">说明：</span>《介绍》Q6 已把它列为待确认，建议产品侧明确「只做开关校验」的验收口径。</p>
+  </div>
+
+  <div class="pcard p2">
+    <h4><span class="tag">P2-4</span>上传大小上限与文档演示数值不一致</h4>
+    <p><span class="lbl">现状：</span>文档 7.3 交互演示写「图片上限 10MB，文件上限 50MB」，代码实际为 5MB / 20MB。</p>
+    <p><span class="lbl">证据：</span><a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/ResourceModel.ets#L8-L9">ResourceModel.ets:8-9</a> <code>IMAGE_MAX_MB=5</code>、<code>FILE_MAX_MB=20</code>。<span class="lbl">建议：</span>统一文案或改常量，避免验收时口径打架。</p>
+  </div>
+
+</div>
+
+<h2>四、明确属于「工程边界」而非缺口的项</h2>
+<div class="note">
+<p><b>这些能力有代码、有交互、UI 也标注了模拟，按《介绍》第 8 节的口径应视为已完成，不建议作为缺陷单：</b></p>
+<ul>
+  <li><b>课表云端同步</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/TimetableSync.ets#L1-L17">TimetableSync.ets:1-17</a>，按账号快照，界面标注「本地模拟云端（无真实后端）」。</li>
+  <li><b>笔记云同步/离线/冲突</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/NoteSync.ets#L117-L157">NoteSync.ets:117-157</a>，冲突选择与状态标记真实存在。</li>
+  <li><b>内容审核</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/ResourceModel.ets#L58-L100">ResourceModel.ets:58-100</a>，本地关键词命中，文件头已注明演示性质。</li>
+  <li><b>图片压缩</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/UploadPolicy.ets#L18-L72">UploadPolicy.ets:18-72</a>，真实解码重编码，失败有兜底。</li>
+  <li><b>台账导出 CSV</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/utils/CsvExport.ets#L7-L23">CsvExport.ets:7-23</a>，带 BOM，Excel 可直接打开（符合《介绍》8.7）。</li>
+  <li><b>课表导出图片写入应用沙箱</b> —— <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/CourseTablePage.ets#L779-L802">CourseTablePage.ets:779-802</a>，与《介绍》8.2「写入应用文件目录」一致。</li>
+</ul>
+</div>
+
+<h2>五、范围歧义与需要你确认</h2>
+<div class="card">
+<ol>
+  <li><b>管理员角色是否需要管理端？</b> <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/PermissionModel.ets#L1-L80">PermissionModel.ets</a> 定义了 <code>ADMIN_CONSOLE</code>，但全仓没有任何管理端页面或入口。《介绍》写明「后台管理员不在本 PRD 功能范围内展开」，因此我未把它算成缺口。<b>请确认验收是否包含管理端。</b></li>
+  <li><b>「修改课程基础配置 / 调整学分规则 / 删除课程」是否要真正可操作？</b> 现在它们只出现在群详情权限表（<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/GroupInfoPage.ets#L597-L614">GroupInfoPage.ets:597-614</a>），没有任何配置页或删除流程；《介绍》也未定义这些页面的字段与交互。<b>按当前文档，我判定为「权限表展示」而非功能缺失；若要求可操作，需要补充页面规格。</b></li>
+  <li><b>「虚拟定位校验」的验收标准</b> 是「识别系统模拟定位」还是「教师开关 + 学生自证」？当前实现只能做到后者（<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/study/SigninPage.ets#L350-L422">SigninPage.ets:350-422</a>），与《介绍》Q6 的待确认项一致。</li>
+  <li><b>「真实云端/多端/支付」是否在本次交付内？</b> 若要求真实网络与支付，则第 7/13/15/50/55 项需重新判定为未完成，且需要后端接口清单。</li>
+  <li><b>题库与随堂练习是否需要打通？</b> <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/course/QuestionBankPage.ets#L1-L10">QuestionBankPage</a> 使用独立的 <code>BankQuestion</code> 模型（单选/填空/简答），练习页使用 <code>PracticeQuestion</code>（六题型），两者无引用关系；「我的题库」目前是独立 CRUD。PRD 未强制「从题库选题」，因此我只列为观察项，不作为必补缺口。</li>
+</ol>
+</div>
+
+<h2>六、审查方法与复核建议</h2>
+<div class="card">
+<p><b>方法：</b></p>
+<ul>
+  <li>通读 125 个 <code>.ets</code>（约 3.72 万行）中的全部页面、组件、模型与工具关键路径，重点覆盖入口 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/Index.ets#L1-L80">Index.ets</a>、<a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/pages/common/MinePage.ets#L1-L920">MinePage.ets</a>、状态与持久化 <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/DataModel.ets#L1-L80">DataModel</a> / <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/InteractionModel.ets#L1-L80">InteractionModel</a> / <a href="file:///F:/25570737/harmony/tab/entry/src/main/ets/model/PermissionModel.ets#L1-L80">PermissionModel</a>，以及导入/导出/同步/上传等工具。</li>
+  <li>用路由目标集合与 <a href="file:///F:/25570737/harmony/tab/entry/src/main/resources/base/profile/main_pages.json">main_pages.json</a> 做双向比对，确认没有「跳转到未注册页面」与「注册了但无入口」的孤儿页。</li>
+  <li>对「未实现」结论做全仓关键词反证检索（<code>导入题目/导入模板/开票/注销/风控/活动详情/开始下载</code>），避免仅凭单文件误判。</li>
+  <li>「部分实现」均落到具体缺失的子能力，不把「界面好看但无逻辑」笼统归为已实现。</li>
+</ul>
+<p><b>快速复核路径：</b></p>
+<ol>
+  <li>跑一遍主流程：首页 → 我的笔记（新建/分享/回收站）→ 课程表（导入 xlsx/导出图片）→ 课程 → 章节 → 讲师主页 → 班级群（公告/文件/举报/免打扰）→ 教师侧签到/练习/问卷/抽选/积分/任务/台账 → 消息 → 设置。</li>
+  <li>重点验证 4 个 P0：练习页是否有「导入题目」；笔记详情是否可投币；设置页是否有注销；连续投币是否有任何限制。</li>
+  <li>切换学生/教师/助教身份，确认金币是否被清零且无法恢复（对应 7.2 隔离问题）。</li>
+</ol>
+</div>
+
+<div class="foot">
+  审查结论基于静态源码阅读与全仓检索，未在真机运行；「已实现」表示代码路径完整、数据可关联，不表示交互细节 100% 符合视觉稿。所有引用行号以当前工作区文件为准。
+</div>
+
+</div>
+</body>
+</html>

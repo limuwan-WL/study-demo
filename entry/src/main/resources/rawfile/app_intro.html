@@ -1,0 +1,3168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习软件介绍</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --accent: #f59e0b;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --code-bg: #f1f5f9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .layout { display: flex; min-height: 100vh; }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+  nav.toc h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 0 20px 8px;
+    margin: 0;
+  }
+  nav.toc a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+  }
+  nav.toc a:hover { color: var(--primary); background: #eff6ff; }
+  nav.toc a.active { color: var(--primary); border-left-color: var(--primary); background: #eff6ff; font-weight: 600; }
+  main {
+    flex: 1;
+    max-width: 920px;
+    padding: 40px 56px 80px;
+    margin: 0 auto;
+  }
+  header.doc-header {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  header.doc-header .tag {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  header.doc-header h1 {
+    font-size: 30px;
+    margin: 12px 0 8px;
+    line-height: 1.3;
+  }
+  header.doc-header .meta { color: var(--text-muted); font-size: 13px; }
+  h2 {
+    font-size: 22px;
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 20px;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 32px 0 12px;
+    color: var(--primary-dark);
+    scroll-margin-top: 20px;
+  }
+  h4 {
+    font-size: 15px;
+    margin: 20px 0 8px;
+  }
+  p { margin: 0 0 12px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 600;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .badge-p0 { background: #fee2e2; color: var(--danger); }
+  .badge-p1 { background: #fef3c7; color: var(--warning); }
+  .badge-assumption { background: #dbeafe; color: var(--primary-dark); }
+  .badge-tbd { background: #e2e8f0; color: var(--text-muted); }
+  ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  .callout {
+    background: #fffbeb;
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .callout.note { background: #eff6ff; border-left-color: var(--primary); }
+  .flow-diagram {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    padding: 16px;
+    margin: 12px 0 20px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .req-id {
+    color: var(--primary);
+    font-weight: 600;
+    font-family: monospace;
+  }
+  .section-anchor { scroll-margin-top: 20px; }
+  /* ===== Interactive Demo Components ===== */
+  .demo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 20px 0 28px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .demo-header .demo-title { font-weight: 600; color: var(--text); }
+  .demo-body { padding: 16px; }
+  .demo-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+  .demo-tab {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .demo-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .demo-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .demo-btn:hover { background: #f1f5f9; }
+  .demo-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .demo-btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+  /* Schedule demo */
+  .sched-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sched-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .sched-table th, .sched-table td { border: 1px solid #000; padding: 4px; text-align: center; height: 38px; background: #fff; }
+  .sched-table th { background: #f1f5f9; }
+  .course-block {
+    display: block;
+    padding: 3px 4px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.2;
+    cursor: pointer;
+    margin: 1px 0;
+  }
+  .course-block.c1 { background: #3b82f6; }
+  .course-block.c2 { background: #10b981; }
+  .course-block.c3 { background: #f59e0b; }
+  .course-block.c4 { background: #ef4444; }
+  .course-overlap { position: relative; }
+  .course-overlap .course-block { opacity: 0.85; }
+  .sched-popup {
+    position: absolute;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 12px;
+    z-index: 5;
+    display: none;
+    min-width: 160px;
+    text-align: left;
+  }
+  .course-overlap:hover .sched-popup { display: block; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-cell {
+    border: 1px solid var(--border);
+    min-height: 60px;
+    padding: 4px;
+    font-size: 11px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .cal-cell.other-month { background: #f8fafc; color: #cbd5e1; }
+  .cal-cell .date-num { font-weight: 600; }
+  .cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 1px; }
+  .cal-day-list { margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 6px; font-size: 13px; display: none; }
+  .cal-day-list.show { display: block; }
+
+  /* Note editor demo */
+  .note-toolbar { display: flex; gap: 6px; padding: 8px; border: 1px solid var(--border); border-bottom: none; border-radius: 6px 6px 0 0; background: #f8fafc; }
+  .note-toolbar button { width: 30px; height: 30px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; font-size: 14px; }
+  .note-toolbar button:hover { background: #e2e8f0; }
+  .note-area {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 12px;
+    font-size: 14px;
+    outline: none;
+    resize: vertical;
+  }
+  .note-meta { display: flex; gap: 12px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .save-status { font-size: 12px; color: var(--success); }
+  .save-status.saving { color: var(--warning); }
+  .tag-chip { display: inline-block; padding: 2px 10px; background: #e0e7ff; color: #4338ca; border-radius: 12px; font-size: 12px; margin: 2px; }
+  .perm-group { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .perm-group button { padding: 4px 10px; border: none; background: #fff; cursor: pointer; font-size: 12px; }
+  .perm-group button.active { background: var(--primary); color: #fff; }
+
+  /* Sign-in demo */
+  .signin-panel { display: none; }
+  .signin-panel.active { display: block; }
+  .location-config, .code-config, .pattern-config { padding: 12px; background: #f8fafc; border-radius: 6px; font-size: 13px; }
+  .pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin: 12px auto; }
+  .pattern-dot {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px;
+  }
+  .pattern-dot.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .code-display {
+    font-size: 32px; font-weight: 700; letter-spacing: 6px;
+    text-align: center; padding: 16px; background: #fff;
+    border: 2px dashed var(--primary); border-radius: 8px; color: var(--primary);
+    user-select: none;
+  }
+
+  /* ===== Practice demo ===== */
+  .qtype-bar { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .qtype-bar button { padding: 5px 12px; border: 1px solid var(--border); background:#fff; border-radius:16px; cursor:pointer; font-size:12.5px; }
+  .qtype-bar button.active { background: var(--primary); color:#fff; border-color: var(--primary); }
+  .q-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .q-card .q-title { font-weight: 600; margin-bottom: 10px; }
+  .q-opt { display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin: 4px 0; background: #fff; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+  .q-opt.correct { border-color: var(--success); background: #f0fdf4; }
+  .q-opt.wrong { border-color: var(--danger); background: #fef2f2; }
+  .q-opt input { pointer-events: none; }
+  .q-fill { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; }
+  .q-essay { width: 100%; min-height: 70px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; resize: vertical; }
+  .q-feedback { margin-top: 8px; padding: 8px; border-radius: 6px; font-size: 13px; display: none; }
+  .q-feedback.show { display: block; }
+  .q-feedback.ok { background: #f0fdf4; color: var(--success); }
+  .q-feedback.no { background: #fef2f2; color: var(--danger); }
+  .q-feedback.subj { background: #eff6ff; color: var(--primary-dark); }
+  .practice-config { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 10px; background: #f8fafc; border-radius: 6px; margin-bottom: 12px; font-size: 13px; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .seg button { padding: 4px 12px; border: none; background: #fff; cursor: pointer; font-size: 12.5px; }
+  .seg button.active { background: var(--primary); color: #fff; }
+
+  /* ===== Coin demo ===== */
+  .coin-top { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border-radius: 8px; margin-bottom: 14px; }
+  .coin-balance { font-size: 26px; font-weight: 700; }
+  .coin-channels { display: flex; gap: 8px; margin-bottom: 12px; }
+  .coin-ch { flex:1; padding: 10px; border: 2px solid var(--border); border-radius: 8px; text-align: center; cursor: pointer; background:#fff; }
+  .coin-ch.active { border-color: var(--primary); background: #eff6ff; }
+  .coin-amounts { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+  .coin-amt { padding: 10px; border: 1px solid var(--border); border-radius: 6px; text-align: center; cursor: pointer; background:#fff; font-size: 13px; }
+  .coin-amt.active { border-color: var(--primary); background: #eff6ff; color: var(--primary-dark); font-weight: 600; }
+  .ledger { width: 100%; font-size: 12.5px; border-collapse: collapse; margin-top: 12px; }
+  .ledger th, .ledger td { border: 1px solid var(--border); padding: 6px 8px; }
+  .ledger th { background: #f1f5f9; }
+  .ledger .in { color: var(--success); }
+  .ledger .out { color: var(--danger); }
+
+  /* ===== Group demo ===== */
+  .group-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .group-layout { grid-template-columns: 1fr; } }
+  .group-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .group-panel h4 { margin: 0 0 8px; font-size: 14px; }
+  .file-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .file-tabs button { padding: 4px 10px; border: 1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-size:12px; }
+  .file-tabs button.active { background: var(--primary); color:#fff; border-color:var(--primary); }
+  .file-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #fff; border: 1px solid var(--border); border-radius: 6px; margin: 4px 0; font-size: 12.5px; }
+  .role-switch { display: flex; gap: 4px; margin-bottom: 10px; }
+  .role-switch button { flex:1; padding: 6px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; font-size:12.5px; }
+  .role-switch button.active { background: var(--primary); color:#fff; border-color:var(--primary); }
+  .perm-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12.5px; border-bottom: 1px dashed var(--border); }
+  .perm-row:last-child { border-bottom: none; }
+  .perm-allow { color: var(--success); }
+  .perm-deny { color: var(--danger); }
+
+  /* ===== Follow demo ===== */
+  .follow-list { margin-top: 10px; }
+  .follow-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+  .follow-cover { width: 48px; height: 48px; border-radius: 8px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .follow-info { flex: 1; min-width: 0; }
+  .follow-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .follow-time { font-size: 12px; color: var(--text-muted); }
+  .red-dot { display: inline-block; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; }
+  .follow-actions { display: flex; gap: 6px; }
+
+  /* ===== Survey demo ===== */
+  .survey-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; padding: 10px; background: #f8fafc; border-radius: 6px; font-size: 13px; }
+  .scale-bar { display: flex; gap: 8px; margin: 8px 0; }
+  .scale-opt { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; font-weight: 600; }
+  .scale-opt.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .survey-stats { margin-top: 12px; padding: 10px; background: #f0fdf4; border-radius: 6px; font-size: 13px; display: none; }
+  .survey-stats.show { display: block; }
+  .anon-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .anon-badge.anon { background: #fee2e2; color: var(--danger); }
+  .anon-badge.real { background: #dcfce7; color: var(--success); }
+
+  /* ===== Random pick demo ===== */
+  .pick-pool { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .pick-pool button { padding: 6px 14px; border: 1px solid var(--border); background:#fff; border-radius:16px; cursor:pointer; font-size:13px; }
+  .pick-pool button.active { background: var(--primary); color:#fff; border-color: var(--primary); }
+  .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap: 6px; margin-bottom: 12px; max-height: 150px; overflow-y: auto; padding: 8px; background: #f8fafc; border-radius: 6px; }
+  .stu-chip { padding: 6px 8px; background: #fff; border: 1px solid var(--border); border-radius: 14px; font-size: 12px; text-align: center; }
+  .stu-chip.absent { opacity: 0.45; text-decoration: line-through; }
+  .pick-stage { text-align: center; padding: 20px; background: linear-gradient(135deg,#eff6ff,#dbeafe); border-radius: 8px; margin: 12px 0; }
+  .pick-name { font-size: 28px; font-weight: 700; color: var(--primary-dark); min-height: 40px; }
+  .pick-name.rolling { animation: shake 0.1s infinite; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+  .pick-note { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-top: 8px; font-size: 13px; }
+  .pick-log { margin-top: 12px; }
+  .pick-log-item { display: flex; justify-content: space-between; padding: 6px 10px; background: #fff; border: 1px solid var(--border); border-radius: 6px; margin: 4px 0; font-size: 12.5px; }
+  .pick-log-item .st-done { color: var(--success); }
+  .pick-log-item .st-refuse { color: var(--danger); }
+
+  /* ===== Lecturer carousel demo ===== */
+  .carousel-wrap { position: relative; }
+  .carousel-track { display: flex; gap: 12px; overflow-x: auto; scroll-behavior: smooth; padding: 8px 4px; scroll-snap-type: x mandatory; }
+  .carousel-track::-webkit-scrollbar { height: 0; }
+  .lecturer-card {
+    flex: 0 0 220px; scroll-snap-align: start;
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; cursor: pointer; transition: box-shadow .2s, transform .2s;
+  }
+  .lecturer-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.1); transform: translateY(-2px); }
+  .lec-avatar {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px;
+    background: linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .lec-name { text-align: center; font-weight: 600; font-size: 15px; }
+  .lec-title { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .lec-bio { font-size: 12px; color: var(--text-muted); line-height: 1.5; max-height: 36px; overflow: hidden; position: relative; }
+  .lec-bio.expanded { max-height: none; }
+  .lec-toggle { font-size: 11px; color: var(--primary); cursor: pointer; text-align: center; margin-top: 4px; }
+  .lec-follow { width: 100%; margin-top: 8px; padding: 5px; border: 1px solid var(--primary); background:#fff; color:var(--primary); border-radius:6px; cursor:pointer; font-size:12px; }
+  .lec-follow.followed { background: var(--primary); color:#fff; }
+  .carousel-nav { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 8px; }
+  .carousel-nav button { width: 32px; height: 32px; border-radius:50%; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:16px; }
+  .carousel-dots { display: flex; gap: 6px; }
+  .carousel-dots span { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; cursor: pointer; }
+  .carousel-dots span.active { background: var(--primary); width: 20px; border-radius: 4px; }
+  .lec-modal {
+    position: fixed; inset:0; background: rgba(0,0,0,.5); display:none;
+    align-items: center; justify-content: center; z-index: 100;
+  }
+  .lec-modal.show { display: flex; }
+  .lec-modal-content {
+    background:#fff; border-radius:12px; padding:20px; max-width:420px; width:90%;
+    max-height:80vh; overflow-y:auto;
+  }
+  .lec-modal-content h4 { margin: 0 0 8px; }
+  .lec-modal-close { float: right; cursor: pointer; font-size: 20px; color: var(--text-muted); }
+  .lec-course-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin: 2px; }
+  .lec-course-tag.local { background:#dbeafe; color:var(--primary-dark); }
+  .lec-course-tag.public { background:#dcfce7; color:var(--success); }
+
+  /* ===== Points rule demo ===== */
+  .points-config { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  @media (max-width: 600px) { .points-config { grid-template-columns: 1fr; } }
+  .pts-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fff; border: 1px solid var(--border); border-radius: 6px; }
+  .pts-row label { font-size: 13px; }
+  .pts-row input[type=number] { width: 60px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
+  .pts-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .pts-toggle input { opacity: 0; width: 0; height: 0; }
+  .pts-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 24px; transition: .3s; }
+  .pts-slider:before { position: absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
+  .pts-toggle input:checked + .pts-slider { background: var(--success); }
+  .pts-toggle input:checked + .pts-slider:before { transform: translateX(20px); }
+  .pts-bar { height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; margin: 6px 0; }
+  .pts-bar-fill { height: 100%; background: linear-gradient(90deg,var(--success),var(--primary)); transition: width .4s; }
+  .pts-ledger { width: 100%; font-size: 12.5px; border-collapse: collapse; margin-top: 10px; }
+  .pts-ledger th, .pts-ledger td { border: 1px solid var(--border); padding: 6px 8px; }
+  .pts-ledger th { background: #f1f5f9; }
+
+  /* ===== Task management demo ===== */
+  .task-card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; }
+  .task-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .task-title { font-weight:600; font-size:14px; }
+  .task-status { padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+  .ts-pending { background:#fef3c7; color:var(--warning); }
+  .ts-active { background:#dcfce7; color:var(--success); }
+  .ts-ended { background:#e2e8f0; color:var(--text-muted); }
+  .ts-withdrawn { background:#fee2e2; color:var(--danger); }
+  .task-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .task-meta { font-size:12px; color:var(--text-muted); }
+
+  /* ===== Data view demo ===== */
+  .stat-row { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .stat-card { flex:1; min-width:100px; padding:12px; border-radius:8px; text-align:center; }
+  .stat-card .num { font-size:24px; font-weight:700; }
+  .stat-card .label { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .sc-green { background:#f0fdf4; }
+  .sc-green .num { color:var(--success); }
+  .sc-red { background:#fef2f2; }
+  .sc-red .num { color:var(--danger); }
+  .sc-blue { background:#eff6ff; }
+  .sc-blue .num { color:var(--primary); }
+  .signin-row { display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:#fff; border:1px solid var(--border); border-radius:6px; margin:4px 0; font-size:13px; }
+  .badge-signed { color:var(--success); font-weight:600; }
+  .badge-unsigned { color:var(--danger); font-weight:600; }
+
+  /* ===== Mine page demo ===== */
+  .mine-switch { display:flex; gap:4px; margin-bottom:12px; }
+  .mine-switch button { flex:1; padding:8px; border:1px solid var(--border); background:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
+  .mine-switch button.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .mine-profile { display:flex; align-items:center; gap:12px; padding:12px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-radius:8px; margin-bottom:12px; }
+  .mine-avatar { width:56px; height:56px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .mine-role-tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; margin-left:6px; }
+  .mine-role-tag.student { background:#dbeafe; color:var(--primary-dark); }
+  .mine-role-tag.teacher { background:#dcfce7; color:var(--success); }
+  .mine-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .mine-entry { padding:12px 8px; background:#fff; border:1px solid var(--border); border-radius:8px; text-align:center; font-size:12.5px; cursor:pointer; }
+  .mine-entry:hover { background:#f8fafc; }
+  .mine-entry .icon { font-size:20px; display:block; margin-bottom:4px; }
+
+  /* ===== Group chat demo ===== */
+  .chat-panel { margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .chat-header { display: flex; align-items: center; padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px; }
+  .chat-messages { height: 280px; overflow-y: auto; padding: 12px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { display: flex; gap: 8px; max-width: 80%; }
+  .chat-msg.me { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .chat-avatar.ta { background: var(--success); }
+  .chat-avatar.stu { background: var(--warning); }
+  .chat-bubble { background: #fff; padding: 8px 12px; border-radius: 10px; font-size: 13px; position: relative; }
+  .chat-msg.me .chat-bubble { background: var(--primary); color: #fff; }
+  .chat-name { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .chat-msg.me .chat-name { text-align: right; }
+  .chat-time { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .chat-msg.me .chat-time { text-align: right; }
+  .chat-img { width: 120px; height: 80px; background: linear-gradient(135deg,#a8edea,#fed6e3); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .chat-file { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(255,255,255,.2); border-radius: 6px; font-size: 12px; }
+  .chat-at { color: #fbbf24; font-weight: 600; }
+  .chat-recall { color: var(--text-muted); font-style: italic; font-size: 12px; }
+  .chat-actions { display: flex; gap: 4px; margin-top: 4px; opacity: 0; transition: opacity .2s; }
+  .chat-msg:hover .chat-actions { opacity: 1; }
+  .chat-actions button { font-size: 11px; padding: 1px 6px; background: rgba(255,255,255,.3); border: none; border-radius: 3px; cursor: pointer; color: inherit; }
+  .chat-toolbar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fff; border-top: 1px solid var(--border); }
+  .chat-tool { width: 32px; height: 32px; border: none; background: #f1f5f9; border-radius: 6px; cursor: pointer; font-size: 16px; }
+  .chat-tool:hover { background: #e2e8f0; }
+  .chat-input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+  .unread-dot { display: inline-block; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; margin-left: 6px; }
+
+  /* ===== Note trash & Message center ===== */
+  .trash-item { display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px; }
+  .trash-info { flex:1; }
+  .trash-title { font-weight:600;font-size:13px; }
+  .trash-meta { font-size:11px;color:var(--text-muted);margin-top:2px; }
+  .trash-days { font-size:11px;color:var(--danger);font-weight:600; }
+  .trash-actions { display:flex;gap:6px; }
+  .msg-item { display:flex;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer; }
+  .msg-item.unread { background:#eff6ff;border-left:3px solid var(--primary); }
+  .msg-icon { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+  .msg-body { flex:1;min-width:0; }
+  .msg-head { display:flex;justify-content:space-between;align-items:center; }
+  .msg-type { font-weight:600;font-size:13px; }
+  .msg-time { font-size:11px;color:var(--text-muted); }
+  .msg-content { font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .msg-del { opacity:0;transition:opacity .2s; }
+  .msg-item:hover .msg-del { opacity:1; }
+
+  /* ===== Storage security demo ===== */
+  .upload-box { border:2px dashed var(--border); border-radius:8px; padding:24px; text-align:center; background:#f8fafc; margin-bottom:12px; }
+  .upload-progress { height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin:8px 0; }
+  .upload-progress-fill { height:100%; background:var(--primary); width:0; transition:width .3s; }
+  .audit-step { display:flex; align-items:center; gap:8px; padding:8px; margin:4px 0; border-radius:6px; font-size:13px; }
+  .audit-step.pass { background:#f0fdf4; }
+  .audit-step.block { background:#fef2f2; }
+  .audit-step.pending { background:#f8fafc; color:var(--text-muted); }
+  .step-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; flex-shrink:0; }
+  .step-icon.ok { background:var(--success); }
+  .step-icon.no { background:var(--danger); }
+  .step-icon.wait { background:#cbd5e1; }
+
+  /* ===== Exception feedback demo ===== */
+  .toast-container { position:fixed; top:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px; }
+  .toast { padding:10px 16px; border-radius:8px; color:#fff; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,.15); animation:slideIn .3s; }
+  .toast.success { background:var(--success); }
+  .toast.error { background:var(--danger); }
+  .toast.info { background:var(--primary); }
+  .toast.warning { background:var(--warning); }
+  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+  .offline-banner { padding:8px 12px; background:#fef3c7; color:var(--warning); border-radius:6px; font-size:13px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .offline-banner.online { background:#dcfce7; color:var(--success); }
+  .empty-state { text-align:center; padding:30px; color:var(--text-muted); }
+  .empty-state .icon { font-size:40px; margin-bottom:8px; }
+
+  @media (max-width: 860px) {
+    nav.toc { display: none; }
+    main { padding: 24px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>目录</h2>
+  <a href="#bg">1. 背景与目标</a>
+  <a href="#scope">2. 范围</a>
+  <a href="#roles">3. 角色与对象模型</a>
+  <a href="#student">4. 学生模块</a>
+  <a href="#s-home">&nbsp;&nbsp;4.1 首页</a>
+  <a href="#s-notes">&nbsp;&nbsp;4.2 笔记主页</a>
+  <a href="#s-course">&nbsp;&nbsp;4.3 课程页面</a>
+  <a href="#s-follow">&nbsp;&nbsp;4.4 关注页面</a>
+  <a href="#s-coin">&nbsp;&nbsp;4.5 金币体系</a>
+  <a href="#teacher">5. 教师模块</a>
+  <a href="#t-signin">&nbsp;&nbsp;5.1 签到</a>
+  <a href="#t-practice">&nbsp;&nbsp;5.2 随堂练习</a>
+  <a href="#t-survey">&nbsp;&nbsp;5.3 调查问卷</a>
+  <a href="#t-pick">&nbsp;&nbsp;5.4 随机抽选</a>
+  <a href="#t-points">&nbsp;&nbsp;5.5 积分规则</a>
+  <a href="#t-task">&nbsp;&nbsp;5.6 任务管理</a>
+  <a href="#t-data">&nbsp;&nbsp;5.7 数据查看</a>
+  <a href="#common">6. 通用模块（班级群）</a>
+  <a href="#global">7. 全局通用模块</a>
+  <a href="#g-mine">&nbsp;&nbsp;7.1 我的页面</a>
+  <a href="#g-perm">&nbsp;&nbsp;7.2 权限体系</a>
+  <a href="#g-storage">&nbsp;&nbsp;7.3 资源存储与安全</a>
+  <a href="#g-exception">&nbsp;&nbsp;7.4 异常与交互反馈</a>
+  <a href="#g-ta">&nbsp;&nbsp;7.5 助教角色</a>
+  <a href="#optional">8. 选择性优化建议</a>
+  <a href="#shared">9. 共享规则</a>
+  <a href="#open">10. 开放问题</a>
+</nav>
+
+<main>
+<header class="doc-header">
+  <span class="tag">PRD</span>
+  <h1>学习软件介绍</h1>
+  <div class="meta">版本 v1.0 · 多角色（学生/教师/助教/管理员）· 涉及资金与权限体系</div>
+</header>
+
+<!-- ===== 1. 背景与目标 ===== -->
+<h2 id="bg">1. 背景与目标</h2>
+
+<p>学习通作为高校主流教学平台，当前在<strong>个人知识管理（笔记）、课表可视化、师生课堂互动、班级群协作、讲师信息沉淀、虚拟激励体系</strong>等能力上存在缺失或体验不足。学生缺少统一的笔记与课表入口，教师的课堂互动工具分散且台账能力弱，班级群功能单一，金币等激励机制缺失。</p>
+
+<p><strong>产品决策：</strong>以"课堂教学闭环 + 个人知识沉淀 + 轻量激励"为核心，新增/优化五大能力簇——</p>
+<ul>
+  <li>学生侧：课表、笔记、讲师主页、关注、金币</li>
+  <li>教师侧：签到、随堂练习、问卷、随机抽选、积分台账</li>
+  <li>通用侧：班级群协作与权限</li>
+  <li>全局侧：个人中心、权限隔离、资源安全、异常反馈</li>
+</ul>
+
+<p><strong>可观测结果：</strong>学生可在一个 App 内完成「查看课表 → 记录笔记 → 参与课堂互动 → 积累学分/金币」的完整学习闭环；教师可在班级群内发起并管理全部课堂互动任务并导出台账。</p>
+
+<!-- ===== 2. 范围 ===== -->
+<h2 id="scope">2. 范围</h2>
+
+<table>
+  <tr><th>层级</th><th>范围说明</th></tr>
+  <tr>
+    <td><span class="badge badge-p0">P0</span> 核心闭环</td>
+    <td>
+      课表导入与展示 · 笔记新建/编辑/分类/回收站 · 随堂练习发布与作答 · 签到（位置/验证码/图案）· 班级群基础功能 · 金币充值与投币 · 我的页面重构 · 角色权限隔离
+    </td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-p1">P1</span> 支撑能力</td>
+    <td>
+      讲师主页与关注 · 调查问卷 · 随机抽选 · 积分规则 · 群文件归档 · 笔记分享/版本冲突 · 资源内容审核 · 异常反馈
+    </td>
+  </tr>
+  <tr>
+    <td>排除</td>
+    <td>
+      课程交易购买（金币不可购课）· 直播授课 · 在线考试系统（随堂练习非正式考试）· 复杂工作流审批 · 跨校数据互通
+    </td>
+  </tr>
+</table>
+
+<!-- ===== 3. 角色与对象模型 ===== -->
+<h2 id="roles">3. 角色与对象模型</h2>
+
+<h3>3.1 角色定义</h3>
+<table>
+  <tr><th>角色</th><th>身份标识</th><th>核心权限边界</th></tr>
+  <tr><td>学生</td><td>学号</td><td>浏览课程、参与互动、记笔记、投币、关注</td></tr>
+  <tr><td>授课教师</td><td>工号</td><td>课程群主、发布任务、配置学分、批阅、管理助教与学生</td></tr>
+  <tr><td>助教</td><td>工号（被主讲教师添加）</td><td>发布签到/公告、查看台账、批阅作业；<strong>不可</strong>改课程配置/学分规则/删课程</td></tr>
+  <tr><td>后台管理员</td><td>后台账号</td><td>内容审核、举报处理、全局配置（不在本 PRD 功能范围内展开，仅作为数据边界角色存在）</td></tr>
+</table>
+
+<h3>3.2 核心对象</h3>
+<table>
+  <tr><th>对象</th><th>关键属性</th><th>所属/可见性</th></tr>
+  <tr><td>课表</td><td>课程名、地点、教师、时段、区分色</td><td>学生私有，本地缓存+云端同步</td></tr>
+  <tr><td>笔记</td><td>标题、正文、标签、所属笔记本、权限（私有/课程内/公开）、修改时间</td><td>作者所有；权限决定可见范围</td></tr>
+  <tr><td>笔记本</td><td>名称、排序、是否默认</td><td>作者私有</td></tr>
+  <tr><td>互动任务</td><td>类型（签到/练习/问卷/抽选）、状态、起止时间、课程关联</td><td>课程内</td></tr>
+  <tr><td>签到记录</td><td>学生、状态（已签到/未签到/请假/补签）、时间</td><td>课程内</td></tr>
+  <tr><td>学分</td><td>来源行为、分值、学生、课程</td><td>课程内，学生仅见本人</td></tr>
+  <tr><td>金币</td><td>余额、充值记录、消耗明细</td><td>用户私有</td></tr>
+  <tr><td>班级群</td><td>课程关联、群成员、公告、文件</td><td>课程内</td></tr>
+</table>
+
+<!-- ===== 4. 学生模块 ===== -->
+<h2 id="student">4. 学生模块</h2>
+
+<!-- 4.1 首页 -->
+<h3 id="s-home">4.1 首页</h3>
+
+<p><span class="req-id">FR-S-01</span> <strong>笔记快捷卡片：</strong>首页新增笔记快捷卡片，点击进入笔记主页。无笔记数据时卡片内展示引导文案「暂无笔记，点击进入新建」。</p>
+
+<p><span class="req-id">FR-S-02</span> <strong>课程卡片与课表：</strong>首页新增课程卡片，点击默认展示「本周课表」，可切换为本月视图。</p>
+
+<h4>课表展示规则</h4>
+<ul>
+  <li>采用<strong>表格布局</strong>，展示列：课程名称、授课地点、任课教师、上课时段。</li>
+  <li>本周视图按<strong>周一至周日</strong>排布；本月视图以<strong>日历格子</strong>承载，课程以色块嵌入日期格，点击日期展开当日全部课程。</li>
+  <li>不同课程<strong>自动分配区分色</strong>，配色跟随表格主题切换；学生可<strong>手动修改单门课程颜色</strong>。</li>
+  <li>表格基础样式默认为<strong>白底 + 黑色边框</strong>，课表右上角提供入口切换表格主题样式。</li>
+  <li>同一时段存在多门课程时进行<strong>色块叠标</strong>，悬浮弹窗展示全部课程信息。</li>
+  <li>无课表数据时展示引导文案「导入课表文件，查看你的课程安排」。</li>
+</ul>
+
+<p><span class="req-id">FR-S-03</span> <strong>课表导入：</strong>课表右上角提供手动导入入口。</p>
+<table>
+  <tr><th>项</th><th>规则</th></tr>
+  <tr><td>支持格式</td><td><code>.ics</code>、<code>.xlsx</code></td></tr>
+  <tr><td>导入流程</td><td>选择文件 → 预览 → 字段自动映射（支持手动调整）→ 选择模式 → 导入</td></tr>
+  <tr><td>导入模式</td><td>覆盖导入（清空原有课表后写入）/ 追加导入（合并写入，冲突时段按导入时间优先保留后导入项 <span class="badge badge-assumption">Assumption</span>）</td></tr>
+  <tr><td>失败处理</td><td>展示明确报错提示（如格式不支持、字段缺失、解析失败）</td></tr>
+</table>
+
+<p><span class="req-id">FR-S-04</span> <strong>课表存储与提醒：</strong>课表数据本地缓存并云端同步，更换设备登录自动拉取。支持为单门课程<strong>开启上课日程推送提醒</strong>。</p>
+
+<div class="demo" id="demo-schedule">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 课表视图（FR-S-02 / FR-S-03）</span>
+    <span>可切换本周/本月视图，悬浮查看冲突课程</span>
+  </div>
+  <div class="demo-body">
+    <div class="sched-toolbar">
+      <div class="demo-tabs" id="sched-tabs">
+        <button class="demo-tab active" data-view="week">本周视图</button>
+        <button class="demo-tab" data-view="month">本月视图</button>
+      </div>
+      <div>
+        <button class="demo-btn" onclick="alert('模拟：选择 .ics / .xlsx 文件 → 预览 → 字段映射 → 覆盖/追加导入')">导入课表</button>
+        <button class="demo-btn" onclick="toggleTheme(this)">切换主题</button>
+      </div>
+    </div>
+
+    <!-- 本周视图 -->
+    <div id="sched-week">
+      <table class="sched-table" id="sched-table">
+        <thead>
+          <tr><th>时段</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1-2节<br>08:00-09:40</td>
+            <td><span class="course-block c1">高等数学<br>教1-201</span></td>
+            <td></td>
+            <td><span class="course-block c2">大学英语<br>教2-305</span></td>
+            <td></td>
+            <td><span class="course-block c1">高等数学<br>教1-201</span></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>3-4节<br>10:00-11:40</td>
+            <td></td>
+            <td class="course-overlap">
+              <span class="course-block c3">数据结构<br>实验楼A</span>
+              <span class="course-block c4">体育<br>操场</span>
+              <div class="sched-popup">
+                <div style="color:#f59e0b">● 数据结构 · 实验楼A · 王老师</div>
+                <div style="color:#ef4444">● 体育 · 操场 · 李老师</div>
+                <div style="color:var(--text-muted);margin-top:4px">同时段冲突，请以实际为准</div>
+              </div>
+            </td>
+            <td></td>
+            <td><span class="course-block c2">大学英语<br>教2-305</span></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>5-6节<br>14:00-15:40</td>
+            <td><span class="course-block c3">数据结构<br>教3-102</span></td>
+            <td></td>
+            <td><span class="course-block c4">体育<br>操场</span></td>
+            <td></td>
+            <td><span class="course-block c3">数据结构<br>教3-102</span></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px">提示：将鼠标悬浮在周二 3-4 节可查看冲突课程弹窗。课程区分色可点击色块尝试切换（演示）。</p>
+    </div>
+
+    <!-- 本月视图 -->
+    <div id="sched-month" style="display:none">
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-day-list" id="cal-day-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4.2 笔记主页 -->
+<h3 id="s-notes">4.2 笔记主页</h3>
+
+<p><strong>布局：</strong>顶部搜索栏 + 标题「我的笔记」+ 右侧新增笔记图标；中上横向滚动展示笔记本分类；下方笔记列表。无笔记时展示「点击右上方添加笔记」。</p>
+
+<p><span class="req-id">FR-S-05</span> <strong>搜索与排序：</strong>全文检索笔记<strong>标题、正文、标签</strong>，模糊匹配，结果<strong>高亮关键词</strong>。列表支持按<strong>创建时间 / 修改时间</strong>排序。</p>
+
+<p><span class="req-id">FR-S-06</span> <strong>笔记本管理：</strong>支持自定义<strong>新增、重命名、删除、拖拽排序</strong>。自带「默认笔记本」<strong>不可删除</strong>。</p>
+
+<p><span class="req-id">FR-S-07</span> <strong>笔记列表项：</strong>展示标题、内容摘要、最后修改时间、所属笔记本、标签。支持<strong>左滑</strong>唤起操作：置顶、移动分类、删除、分享。</p>
+
+<p><span class="req-id">FR-S-08</span> <strong>笔记编辑器：</strong></p>
+<ul>
+  <li>支持图文、图片、<strong>拍照上传</strong>、插入链接。</li>
+  <li><strong>实时自动保存</strong>；支持自定义标签。</li>
+  <li>笔记默认<strong>私有</strong>，可切换权限为「仅课程内可见」「公开」，支持生成分享链接。</li>
+</ul>
+
+<p><span class="req-id">FR-S-09</span> <strong>回收站：</strong>删除的笔记移入回收站，<strong>保留 30 天</strong>，支持恢复。永久删除操作增加<strong>二次确认</strong>。</p>
+
+<p><span class="req-id">FR-S-10</span> <strong>同步与冲突：</strong>笔记数据云端同步，支持<strong>离线编辑</strong>，联网后自动同步。出现版本冲突时<strong>弹窗供用户选择保留版本</strong>。</p>
+
+<div class="demo" id="demo-note">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 笔记编辑器 & 回收站（FR-S-08 / FR-S-10 / FR-S-09）</span>
+    <span>自动保存 · 权限 · 30天回收站 · 恢复/永久删除</span>
+  </div>
+  <div class="demo-body">
+    <div class="seg" id="note-tab" style="margin-bottom:10px">
+      <button class="active" data-t="editor">📝 笔记编辑</button>
+      <button data-t="trash">🗑️ 回收站</button>
+    </div>
+    <div id="note-editor-view">
+    <input type="text" placeholder="笔记标题：数据结构复习要点" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:15px;margin-bottom:8px">
+    <div class="note-toolbar">
+      <button title="加粗"><b>B</b></button>
+      <button title="斜体"><i>I</i></button>
+      <button title="图片">🖼️</button>
+      <button title="拍照">📷</button>
+      <button title="链接">🔗</button>
+    </div>
+    <textarea class="note-area" id="note-area" placeholder="在此输入笔记正文，支持图文混排…">1. 线性表的顺序存储与链式存储区别
+2. 栈与队列的应用场景
+3. 二叉树遍历：前序、中序、后序</textarea>
+    <div class="note-meta">
+      <span class="save-status" id="save-status">● 已保存</span>
+      <span>标签：
+        <span class="tag-chip">数据结构</span>
+        <span class="tag-chip">期末复习</span>
+        <span class="tag-chip" style="background:#f1f5f9;color:var(--text-muted);cursor:pointer">+ 添加</span>
+      </span>
+      <span style="margin-left:auto">权限：
+        <span class="perm-group">
+          <button class="active" onclick="setPerm(this)">私有</button>
+          <button onclick="setPerm(this)">课程内</button>
+          <button onclick="setPerm(this)">公开</button>
+        </span>
+      </span>
+    </div>
+    </div>
+    <!-- 回收站 -->
+    <div id="note-trash-view" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;color:var(--text-muted)">删除的笔记保留 30 天，过期自动清理</span>
+        <button class="demo-btn danger" style="font-size:12px;padding:4px 12px" onclick="emptyTrash()">清空回收站</button>
+      </div>
+      <div id="trash-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4.3 课程页面 -->
+<h3 id="s-course">4.3 课程页面</h3>
+
+<p><span class="req-id">FR-S-11</span> <strong>授课名师板块：</strong>课程页面增加【授课名师】板块，采用<strong>横向轮播</strong>展示讲师卡片。</p>
+<table>
+  <tr><th>项</th><th>规则</th></tr>
+  <tr><td>卡片内容</td><td>讲师头像、姓名、职称、个人简介</td></tr>
+  <tr><td>绑定</td><td>一门课程可绑定<strong>多名</strong>授课教师</td></tr>
+  <tr><td>轮播</td><td>默认<strong>关闭自动播放</strong>，支持手动左右滑动，底部<strong>分页圆点指示器</strong></td></tr>
+  <tr><td>跳转</td><td>点击讲师卡片跳转<strong>讲师个人主页</strong></td></tr>
+</table>
+
+<div class="demo" id="demo-lecturer">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 授课名师轮播（FR-S-11 / FR-S-12）</span>
+    <span>手动滑动 · 分页圆点 · 点击查看主页 · 关注</span>
+  </div>
+  <div class="demo-body">
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="lec-track"></div>
+      <div class="carousel-nav">
+        <button onclick="lecScroll(-1)">‹</button>
+        <div class="carousel-dots" id="lec-dots"></div>
+        <button onclick="lecScroll(1)">›</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0">默认关闭自动播放，仅支持手动左右滑动；点击卡片打开讲师主页；简介超长可点击展开。</p>
+  </div>
+</div>
+
+<!-- 讲师主页弹窗 -->
+<div class="lec-modal" id="lec-modal">
+  <div class="lec-modal-content">
+    <span class="lec-modal-close" onclick="closeLecModal()">✕</span>
+    <div id="lec-modal-body"></div>
+  </div>
+</div>
+
+<p><span class="req-id">FR-S-12</span> <strong>讲师主页：</strong>包含个人履历、研究方向、开设课程清单、公开课件资源。</p>
+<ul>
+  <li>课程区分<strong>本校授课课程 / 公开课程</strong>。</li>
+  <li>简介超长<strong>自动折叠</strong>，点击展开。</li>
+  <li>头像加载失败展示<strong>默认占位图</strong>。</li>
+  <li>学生<strong>仅可浏览</strong>讲师公开信息；讲师可自主维护个人主页资料。</li>
+  <li>提供入口跳转对应课程页面，支持<strong>关注</strong>该教师。</li>
+</ul>
+
+<!-- 4.4 关注页面 -->
+<h3 id="s-follow">4.4 关注页面</h3>
+
+<p><strong>布局：</strong>顶部搜索输入框，搜索结果展示于输入框下方；分类标签 + 关注列表。</p>
+
+<p><span class="req-id">FR-S-13</span> <strong>搜索与筛选：</strong></p>
+<ul>
+  <li>搜索范围<strong>仅限已关注内容</strong>，不检索全站未关注资源。</li>
+  <li>分类标签：<strong>教师、课程、公开笔记、活动</strong>，默认「全部」，可切换筛选。</li>
+</ul>
+
+<p><span class="req-id">FR-S-14</span> <strong>关注列表：</strong>列表项展示封面、标题、更新时间。有新增内容时展示<strong>红点提示</strong>，支持<strong>快速取消关注</strong>。默认按<strong>内容最新更新</strong>排序，可切换为按<strong>关注时间</strong>排序。</p>
+
+<div class="demo" id="demo-follow">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 关注页面（FR-S-13 / FR-S-14）</span>
+    <span>分类筛选 · 红点提示 · 取消关注</span>
+  </div>
+  <div class="demo-body">
+    <input type="text" placeholder="搜索已关注内容…" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px" id="follow-search">
+    <div class="demo-tabs" id="follow-cats">
+      <button class="demo-tab active" data-cat="all">全部</button>
+      <button class="demo-tab" data-cat="teacher">教师</button>
+      <button class="demo-tab" data-cat="course">课程</button>
+      <button class="demo-tab" data-cat="note">公开笔记</button>
+      <button class="demo-tab" data-cat="activity">活动</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <span class="seg">
+        <button class="active" data-sort="update">按更新时间</button>
+        <button data-sort="follow">按关注时间</button>
+      </span>
+    </div>
+    <div class="follow-list" id="follow-list"></div>
+  </div>
+</div>
+
+<!-- 4.5 金币体系 -->
+<h3 id="s-coin">4.5 金币体系</h3>
+
+<p><span class="req-id">FR-S-15</span> <strong>充值：</strong></p>
+<table>
+  <tr><th>项</th><th>规则</th></tr>
+  <tr><td>渠道</td><td>微信、支付宝、银行卡</td></tr>
+  <tr><td>比例</td><td>1 元 = 10 金币</td></tr>
+  <tr><td>档位</td><td>提供自定义充值档位，生成充值订单</td></tr>
+  <tr><td>记录</td><td>留存充值记录、金币消耗明细，提供<strong>开票入口</strong></td></tr>
+  <tr><td>回调</td><td>充值回调失败<strong>自动重试</strong>，保证余额状态同步</td></tr>
+</table>
+
+<p><span class="req-id">FR-S-16</span> <strong>消费与流通：</strong>金币<strong>独立流通</strong>，<strong>不可用于购买课程</strong>，仅支持对内容进行<strong>点赞、投币</strong>。</p>
+<ul>
+  <li>普通点赞<strong>免费</strong>；投币为<strong>付费赞赏</strong>，最低投币数量为 <strong>1 金币</strong>，投币记录<strong>作者可见</strong>。</li>
+  <li>金币<strong>不可提现、不可转赠、无有效期</strong>。</li>
+  <li>账号注销时金币<strong>自动清零</strong>，注销前弹窗提示。</li>
+</ul>
+
+<p><span class="req-id">FR-S-17</span> <strong>风控：</strong>高频充值、高频投币触发<strong>风控校验</strong>。个人中心提供金币余额、收支明细页面。</p>
+
+<div class="demo" id="demo-coin">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 金币体系（FR-S-15 / FR-S-16）</span>
+    <span>充值 · 投币 · 收支明细联动</span>
+  </div>
+  <div class="demo-body">
+    <div class="coin-top">
+      <div>
+        <div style="font-size:12px;opacity:.9">我的金币</div>
+        <div class="coin-balance" id="coin-balance">120</div>
+      </div>
+      <button class="demo-btn" style="background:#fff;color:var(--accent);border:none;font-weight:600" onclick="document.getElementById('coin-recharge').scrollIntoView({behavior:'smooth',block:'center'})">去充值</button>
+    </div>
+
+    <div id="coin-recharge">
+      <h4 style="margin:8px 0">充值</h4>
+      <div class="coin-channels" id="coin-channels">
+        <div class="coin-ch active" data-ch="微信">💬 微信</div>
+        <div class="coin-ch" data-ch="支付宝">🅰️ 支付宝</div>
+        <div class="coin-ch" data-ch="银行卡">💳 银行卡</div>
+      </div>
+      <div class="coin-amounts" id="coin-amounts">
+        <div class="coin-amt" data-yuan="10">¥10<br><small>100 金币</small></div>
+        <div class="coin-amt active" data-yuan="50">¥50<br><small>500 金币</small></div>
+        <div class="coin-amt" data-yuan="100">¥100<br><small>1000 金币</small></div>
+        <div class="coin-amt" data-yuan="500">¥500<br><small>5000 金币</small></div>
+      </div>
+      <button class="demo-btn primary" id="btn-recharge" style="width:100%">确认充值 500 金币（¥50）</button>
+    </div>
+
+    <div style="margin-top:16px">
+      <h4 style="margin:8px 0">投币赞赏</h4>
+      <div class="q-card" style="margin-bottom:8px">
+        <div style="font-weight:600">《数据结构期末复习笔记》</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:4px 0">作者：张同学 · 点赞 23 · 投币 5</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="demo-btn" id="btn-like">👍 点赞（免费）</button>
+          <span>投币数量：
+            <select id="coin-num" class="demo-btn"><option>1</option><option>2</option><option>5</option><option>10</option></select>
+          </span>
+          <button class="demo-btn" id="btn-tip" style="background:var(--accent);color:#fff;border-color:var(--accent)">🪙 投币</button>
+        </div>
+      </div>
+    </div>
+
+    <h4 style="margin:12px 0 4px">收支明细</h4>
+    <table class="ledger" id="coin-ledger">
+      <thead><tr><th>时间</th><th>类型</th><th>金额</th><th>余额</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== 5. 教师模块 ===== -->
+<h2 id="teacher">5. 教师模块</h2>
+
+<p>教师可在<strong>班级群内</strong>发起多种教学互动任务：随堂练习、调查问卷、课堂签到、随机抽选学生作答。</p>
+
+<!-- 5.1 签到 -->
+<h3 id="t-signin">5.1 签到</h3>
+
+<p><span class="req-id">FR-T-01</span> <strong>签到方式：</strong></p>
+<table>
+  <tr><th>方式</th><th>配置项</th><th>特殊规则</th></tr>
+  <tr><td>位置签到</td><td>签到半径范围、虚拟定位校验</td><td>教师可手动补签、标记请假</td></tr>
+  <tr><td>数字验证码签到</td><td>验证码、有效期</td><td>支持手动刷新验证码</td></tr>
+  <tr><td>图案签到</td><td>教师自定义手势图案</td><td>单次签到图案<strong>一次性失效</strong></td></tr>
+</table>
+
+<p><span class="req-id">FR-T-02</span> <strong>时效与台账：</strong>可配置签到有效时长，<strong>超时自动关闭</strong>签到。签到台账支持<strong>导出 Excel</strong>，清晰标记「已签到 / 未签到」状态。</p>
+
+<div class="demo" id="demo-signin">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 签到方式（FR-T-01）</span>
+    <span>切换三种签到方式查看配置项</span>
+  </div>
+  <div class="demo-body">
+    <div class="demo-tabs" id="signin-tabs">
+      <button class="demo-tab active" data-panel="loc">位置签到</button>
+      <button class="demo-tab" data-panel="code">验证码签到</button>
+      <button class="demo-tab" data-panel="pattern">图案签到</button>
+    </div>
+
+    <div class="signin-panel active" id="panel-loc">
+      <div class="location-config">
+        <p><strong>📍 位置签到</strong></p>
+        <label>签到半径：<strong id="radius-val">200</strong> 米</label>
+        <input type="range" min="50" max="1000" value="200" oninput="document.getElementById('radius-val').textContent=this.value" style="width:100%">
+        <p><label><input type="checkbox" checked> 开启虚拟定位校验</label></p>
+        <p style="font-size:12px;color:var(--text-muted)">教师可在台账中手动补签、标记请假。</p>
+        <button class="demo-btn primary">发起签到</button>
+        <button class="demo-btn">导出签到台账</button>
+      </div>
+    </div>
+
+    <div class="signin-panel" id="panel-code">
+      <div class="code-config">
+        <p><strong>🔢 数字验证码签到</strong></p>
+        <div class="code-display" id="signin-code">7 3 9 2</div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <button class="demo-btn" onclick="document.getElementById('signin-code').textContent=String(Math.floor(1000+Math.random()*9000)).split('').join(' ')">刷新验证码</button>
+          <label>有效期：
+            <select class="demo-btn"><option>5 分钟</option><option>10 分钟</option><option>15 分钟</option></select>
+          </label>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px">教师可手动刷新验证码，到期后签到自动关闭。</p>
+      </div>
+    </div>
+
+    <div class="signin-panel" id="panel-pattern">
+      <div class="pattern-config">
+        <p><strong>🔷 图案签到</strong> — 教师自定义手势图案，单次签到后图案一次性失效</p>
+        <div class="pattern-grid" id="pattern-grid">
+          <div class="pattern-dot" data-i="0">1</div><div class="pattern-dot" data-i="1">2</div><div class="pattern-dot" data-i="2">3</div>
+          <div class="pattern-dot" data-i="3">4</div><div class="pattern-dot" data-i="4">5</div><div class="pattern-dot" data-i="5">6</div>
+          <div class="pattern-dot" data-i="6">7</div><div class="pattern-dot" data-i="7">8</div><div class="pattern-dot" data-i="8">9</div>
+        </div>
+        <div style="text-align:center">
+          <button class="demo-btn" onclick="document.querySelectorAll('.pattern-dot').forEach(d=>d.classList.remove('on'))">重置图案</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px">点击圆点绘制手势图案</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5.2 随堂练习 -->
+<h3 id="t-practice">5.2 随堂练习</h3>
+
+<p><span class="req-id">FR-T-03</span> <strong>发布模式：</strong></p>
+<ul>
+  <li><strong>限时作答：</strong>可配置起止时间、是否允许迟交、迟交扣分比例。</li>
+  <li><strong>永久开放：</strong>不限时间，学生随时作答。</li>
+</ul>
+
+<p><span class="req-id">FR-T-04</span> <strong>题型与判分：</strong>题型包含单选、多选、判断、填空、简答、图片上传。<strong>客观题自动判分</strong>，主观题由教师批阅。</p>
+
+<p><span class="req-id">FR-T-05</span> <strong>作答控制：</strong>可设置<strong>单用户提交次数</strong>、是否允许修改答案；可控制学生查看答案解析的时机（<strong>提交后 / 全部任务结束后</strong>）。</p>
+
+<div class="demo" id="demo-practice">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 随堂练习（FR-T-03 / FR-T-04 / FR-T-05）</span>
+    <span>题目编辑 · 题型切换 · 客观题自动判分 · 答案解析时机</span>
+  </div>
+  <div class="demo-body">
+    <!-- 视图切换 -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <span class="seg" id="view-mode">
+        <button class="active" data-v="edit">✏️ 教师编辑</button>
+        <button data-v="preview">📝 学生作答</button>
+      </span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <button class="demo-btn" onclick="downloadTemplate()">📥 下载导入模板</button>
+        <button class="demo-btn" onclick="openImportModal()">📤 导入题目</button>
+        <button class="demo-btn primary" onclick="addQuestion()">+ 新增题目</button>
+      </span>
+    </div>
+
+    <!-- 导入题目弹窗 -->
+    <div class="lec-modal" id="import-modal">
+      <div class="lec-modal-content">
+        <span class="lec-modal-close" onclick="closeImportModal()">✕</span>
+        <h4 style="margin:0 0 10px">批量导入题目</h4>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">支持 JSON 格式，可先下载模板查看格式。导入模式：</div>
+        <div style="margin-bottom:10px">
+          <label class="pts-toggle" style="vertical-align:middle">
+            <input type="radio" name="imp-mode" value="append" checked> <span>追加导入</span>
+          </label>
+          <label class="pts-toggle" style="vertical-align:middle;margin-left:12px">
+            <input type="radio" name="imp-mode" value="overwrite"> <span>覆盖导入</span>
+          </label>
+        </div>
+        <textarea class="q-essay" id="import-json" placeholder='粘贴 JSON 题目数据，例如：&#10;[&#10;  {"title":"1. 题目内容","type":"single","opts":["A","B","C","D"],"answer":1,"analysis":"解析"},&#10;  {"title":"2. 填空题","type":"fill","answer":"答案","analysis":"解析"}&#10;]'></textarea>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="demo-btn primary" onclick="confirmImport()">确认导入</button>
+          <button class="demo-btn" onclick="document.getElementById('import-json').value=''">清空</button>
+        </div>
+        <div id="import-result" style="margin-top:10px;font-size:12px"></div>
+      </div>
+    </div>
+
+    <!-- 配置区 -->
+    <div class="practice-config">
+      <span>发布模式：
+        <span class="seg" id="pub-mode">
+          <button class="active" data-mode="timed">限时作答</button>
+          <button data-mode="open">永久开放</button>
+        </span>
+      </span>
+      <span>答案解析：
+        <span class="seg" id="ans-timing">
+          <button class="active" data-t="submit">提交后可见</button>
+          <button data-t="end">全部结束后</button>
+        </span>
+      </span>
+    </div>
+
+    <!-- 题目列表 -->
+    <div class="qtype-bar" id="question-list" style="margin-bottom:12px"></div>
+
+    <!-- 编辑视图 -->
+    <div id="edit-view">
+      <div class="q-card">
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+          <label style="font-size:13px">题型：</label>
+          <select class="q-fill" id="edit-type" style="width:auto">
+            <option value="single">单选题</option>
+            <option value="multi">多选题</option>
+            <option value="judge">判断题</option>
+            <option value="fill">填空题</option>
+            <option value="essay">简答题</option>
+            <option value="image">图片上传</option>
+          </select>
+          <button class="demo-btn danger" style="margin-left:auto;padding:4px 12px;font-size:12px" onclick="deleteQuestion()">删除此题</button>
+        </div>
+        <label style="font-size:13px">题干：</label>
+        <textarea class="q-essay" id="edit-title" placeholder="请输入题目内容"></textarea>
+        <div id="edit-options" style="margin-top:10px"></div>
+        <label style="font-size:13px;margin-top:10px;display:block">答案解析：</label>
+        <input class="q-fill" id="edit-analysis" placeholder="请输入答案解析">
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="demo-btn primary" onclick="saveQuestion()">保存题目</button>
+          <span id="save-status" style="align-self:center;font-size:12px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 学生作答视图 -->
+    <div id="preview-view" style="display:none">
+      <div id="q-container"></div>
+      <button class="demo-btn primary" id="btn-submit" style="margin-top:10px">提交作答</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5.3 调查问卷 -->
+<h3 id="t-survey">5.3 调查问卷</h3>
+
+<p><span class="req-id">FR-T-06</span> 支持单选、多选、简答、量表题型。可选择<strong>匿名 / 实名</strong>发布，匿名问卷<strong>不关联学生个人信息</strong>。</p>
+
+<div class="demo" id="demo-survey">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 调查问卷（FR-T-06）</span>
+    <span>题型切换 · 匿名/实名 · 量表评分 · 提交统计</span>
+  </div>
+  <div class="demo-body">
+    <div class="survey-toolbar">
+      <span>发布方式：
+        <span class="seg" id="survey-mode">
+          <button class="active" data-m="anon">匿名</button>
+          <button data-m="real">实名</button>
+        </span>
+      </span>
+      <span>当前问卷：<span class="anon-badge anon" id="anon-badge">匿名（不关联个人信息）</span></span>
+      <button class="demo-btn primary" id="btn-survey-submit">提交问卷</button>
+    </div>
+
+    <div class="qtype-bar" id="survey-qtype">
+      <button class="active" data-qt="single">单选题</button>
+      <button data-qt="multi">多选题</button>
+      <button data-qt="scale">量表题</button>
+      <button data-qt="essay">简答题</button>
+    </div>
+
+    <div id="survey-q"></div>
+
+    <div class="survey-stats" id="survey-stats"></div>
+  </div>
+</div>
+
+<!-- 5.4 随机抽选 -->
+<h3 id="t-pick">5.4 随机抽选</h3>
+
+<p><span class="req-id">FR-T-07</span> <strong>抽选池：</strong>可选<strong>全部学生 / 未签到学生 / 未提交练习学生</strong>。</p>
+<ul>
+  <li>选中后<strong>推送通知</strong>给学生。</li>
+  <li>学生拒绝作答，教师可<strong>添加备注</strong>。</li>
+  <li>抽选记录留存，计入任务台账。</li>
+</ul>
+
+<div class="demo" id="demo-pick">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 随机抽选（FR-T-07）</span>
+    <span>抽选池切换 · 随机动画 · 拒绝备注 · 抽选台账</span>
+  </div>
+  <div class="demo-body">
+    <div class="pick-pool" id="pick-pool">
+      <button class="active" data-pool="all">全部学生（10）</button>
+      <button data-pool="unsigned">未签到学生（3）</button>
+      <button data-pool="unsubmitted">未提交练习学生（2）</button>
+    </div>
+
+    <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:6px">抽选池学生（划线=不在当前池内）：</div>
+    <div class="student-grid" id="student-grid"></div>
+
+    <div class="pick-stage">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">本轮抽中</div>
+      <div class="pick-name" id="pick-name">—</div>
+      <button class="demo-btn primary" id="btn-pick" style="margin-top:12px">🎲 开始随机抽选</button>
+    </div>
+
+    <div id="pick-result-actions" style="display:none">
+      <button class="demo-btn" id="btn-accept">✓ 已作答</button>
+      <button class="demo-btn danger" id="btn-refuse">✗ 拒绝作答（添加备注）</button>
+      <input type="text" class="pick-note" id="pick-note-input" placeholder="拒绝作答备注（仅教师可见）" style="display:none">
+    </div>
+
+    <div class="pick-log">
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">📋 抽选记录台账</div>
+      <div id="pick-log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 5.5 积分规则 -->
+<h3 id="t-points">5.5 积分规则</h3>
+
+<p><span class="req-id">FR-T-08</span> 学生完成<strong>签到、提交随堂练习、被抽选作答并完成答题</strong>，均可计入学分。</p>
+<table>
+  <tr><th>项</th><th>规则</th></tr>
+  <tr><td>分值配置</td><td>教师可自定义每一项行为对应的分值</td></tr>
+  <tr><td>上限</td><td>设置<strong>单次分值上限</strong>、<strong>课程学分总分上限</strong></td></tr>
+  <tr><td>独立性</td><td>学分<strong>独立于课程考试成绩</strong></td></tr>
+  <tr><td>开关</td><td>单门课程可<strong>开启或关闭</strong>学分功能</td></tr>
+  <tr><td>台账</td><td>学分台账支持<strong>导出</strong>；学生端可查看个人学分明细</td></tr>
+</table>
+
+<div class="demo" id="demo-points">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 积分规则（FR-T-08）</span>
+    <span>行为分值配置 · 上限截断 · 学分台账</span>
+  </div>
+  <div class="demo-body">
+    <div class="pts-row" style="margin-bottom:12px">
+      <label><strong>课程学分功能</strong></label>
+      <label class="pts-toggle">
+        <input type="checkbox" id="pts-enable" checked>
+        <span class="pts-slider"></span>
+      </label>
+    </div>
+
+    <div class="points-config" id="pts-config">
+      <div class="pts-row"><label>签到</label><input type="number" id="pts-signin" value="2" min="0"></div>
+      <div class="pts-row"><label>提交随堂练习</label><input type="number" id="pts-practice" value="5" min="0"></div>
+      <div class="pts-row"><label>抽选作答完成</label><input type="number" id="pts-pick" value="3" min="0"></div>
+      <div class="pts-row"><label>单次分值上限</label><input type="number" id="pts-single-cap" value="10" min="0"></div>
+    </div>
+    <div class="pts-row" style="margin-bottom:12px">
+      <label>课程学分总分上限</label>
+      <input type="number" id="pts-total-cap" value="100" min="0">
+    </div>
+
+    <div style="background:#f8fafc;padding:12px;border-radius:8px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span>当前学生累计学分</span>
+        <span><strong id="pts-current">0</strong> / <span id="pts-cap-show">100</span></span>
+      </div>
+      <div class="pts-bar"><div class="pts-bar-fill" id="pts-bar-fill" style="width:0%"></div></div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="demo-btn" onclick="addPoints('签到',2)">模拟签到 +2</button>
+        <button class="demo-btn" onclick="addPoints('提交练习',5)">模拟提交练习 +5</button>
+        <button class="demo-btn" onclick="addPoints('抽选作答',3)">模拟抽选作答 +3</button>
+        <button class="demo-btn" style="margin-left:auto" onclick="exportPts()">导出学分台账</button>
+      </div>
+    </div>
+
+    <table class="pts-ledger" id="pts-ledger">
+      <thead><tr><th>行为</th><th>本次得分</th><th>累计学分</th><th>时间</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 5.6 任务管理 -->
+<h3 id="t-task">5.6 任务管理</h3>
+
+<p><span class="req-id">FR-T-09</span> 互动任务支持<strong>定时发布、提前结束、撤回</strong>。撤回后学生无法继续作答。</p>
+
+<div class="demo" id="demo-task">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 任务管理（FR-T-09）</span>
+    <span>状态流转 · 定时发布 · 提前结束 · 撤回 · 详情台账</span>
+  </div>
+  <div class="demo-body">
+    <!-- 统计概览 -->
+    <div class="stat-row" id="task-stats">
+      <div class="stat-card"><div class="num" id="ts-pending">0</div><div class="label">待发布</div></div>
+      <div class="stat-card"><div class="num" id="ts-active">0</div><div class="label">进行中</div></div>
+      <div class="stat-card"><div class="num" id="ts-ended">0</div><div class="label">已结束</div></div>
+      <div class="stat-card"><div class="num" id="ts-withdrawn">0</div><div class="label">已撤回</div></div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <div class="demo-tabs" id="task-filter">
+        <button class="demo-tab active" data-f="all">全部</button>
+        <button class="demo-tab" data-f="签到">签到</button>
+        <button class="demo-tab" data-f="练习">练习</button>
+        <button class="demo-tab" data-f="问卷">问卷</button>
+      </div>
+      <button class="demo-btn primary" style="margin-left:auto" onclick="openScheduleModal()">+ 新建定时任务</button>
+    </div>
+
+    <!-- 任务列表 -->
+    <div id="task-list"></div>
+
+    <!-- 任务详情面板 -->
+    <div class="lec-modal" id="task-detail-modal">
+      <div class="lec-modal-content">
+        <span class="lec-modal-close" onclick="closeTaskDetail()">✕</span>
+        <div id="task-detail-body"></div>
+      </div>
+    </div>
+
+    <!-- 定时发布配置弹窗 -->
+    <div class="lec-modal" id="schedule-modal">
+      <div class="lec-modal-content">
+        <span class="lec-modal-close" onclick="closeScheduleModal()">✕</span>
+        <h4 style="margin:0 0 12px">定时发布配置</h4>
+        <div style="margin-bottom:10px">
+          <label style="font-size:13px">任务名称</label>
+          <input class="q-fill" id="sch-title" placeholder="请输入任务名称" value="第9周课堂签到">
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:13px">任务类型</label>
+          <select class="q-fill" id="sch-type">
+            <option>签到</option><option>随堂练习</option><option>调查问卷</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:13px">定时发布时间</label>
+          <input type="datetime-local" class="q-fill" id="sch-time" value="2026-11-20T08:00">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:13px">有效时长（分钟）</label>
+          <input type="number" class="q-fill" id="sch-duration" value="30" min="1">
+        </div>
+        <button class="demo-btn primary" style="width:100%" onclick="confirmSchedule()">确认创建定时任务</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5.7 数据查看 -->
+<h3 id="t-data">5.7 数据查看</h3>
+
+<p><span class="req-id">FR-T-10</span> 教师可查看任务详情与学生完成台账，签到台账标记「已签到 / 未签到」，同时查看随堂练习、问卷的作答统计。</p>
+
+<div class="demo" id="demo-data">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 数据查看（FR-T-10）</span>
+    <span>签到统计 · 作答统计 · 台账导出</span>
+  </div>
+  <div class="demo-body">
+    <div class="stat-row">
+      <div class="stat-card sc-green"><div class="num" id="stat-signed">7</div><div class="label">已签到</div></div>
+      <div class="stat-card sc-red"><div class="num" id="stat-unsigned">3</div><div class="label">未签到</div></div>
+      <div class="stat-card sc-blue"><div class="num" id="stat-rate">70%</div><div class="label">签到率</div></div>
+    </div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:6px">签到台账</div>
+    <div id="signin-list"></div>
+    <div style="margin-top:10px">
+      <button class="demo-btn" onclick="showToast('签到台账已导出为 Excel','success')">导出签到台账</button>
+      <button class="demo-btn" onclick="showToast('随堂练习作答统计已导出','success')">导出练习统计</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 6. 通用模块 ===== -->
+<h2 id="common">6. 通用模块（班级群）</h2>
+
+<p><strong>群成员：</strong>授课教师 + 本班学生。支持自主新建班级群。</p>
+
+<p><span class="req-id">FR-C-01</span> <strong>群详情面板：</strong>群聊右上角功能菜单展开后展示：群成员搜索框、课程名称、授课教师、群公告、消息免打扰开关、历史文件归档、聊天记录检索、清空本地聊天记录、举报入口、全部群成员列表。底部放置<strong>红底白字「退出课程」</strong>操作按钮。</p>
+
+<p><span class="req-id">FR-C-02</span> <strong>建群权限：</strong>新建班级群权限默认<strong>仅授课教师可用</strong>，支持配置助教建群权限。一门课程绑定<strong>一个主班级群</strong>，教师可额外创建多个<strong>子分组群</strong>。</p>
+
+<p><span class="req-id">FR-C-03</span> <strong>群公告：</strong>支持富文本、附件，区分<strong>已读/未读</strong>状态，支持<strong>置顶</strong>，修改后全员推送通知。</p>
+
+<p><span class="req-id">FR-C-04</span> <strong>群文件：</strong>自动归档，按<strong>文档、图片、视频</strong>分类，支持按<strong>上传时间</strong>筛选，云端存储并配置<strong>过期清理策略</strong>，支持批量下载。</p>
+
+<p><span class="req-id">FR-C-05</span> <strong>聊天记录：</strong>检索可通过<strong>关键词、发送人、时间范围</strong>筛选云端记录；清空本地聊天记录仅删除本机缓存，<strong>云端归档记录保留</strong>。</p>
+
+<p><span class="req-id">FR-C-06</span> <strong>角色权限：</strong></p>
+<table>
+  <tr><th>操作</th><th>授课教师</th><th>助教</th><th>学生</th></tr>
+  <tr><td>发布公告</td><td>✓</td><td>✓</td><td>✗</td></tr>
+  <tr><td>导出签到台账</td><td>✓</td><td>✓</td><td>✗</td></tr>
+  <tr><td>批阅作业</td><td>✓</td><td>✓</td><td>✗</td></tr>
+  <tr><td>修改课程基础配置</td><td>✓</td><td>✗</td><td>✗</td></tr>
+  <tr><td>调整学分规则</td><td>✓</td><td>✗</td><td>✗</td></tr>
+  <tr><td>删除课程</td><td>✓</td><td>✗</td><td>✗</td></tr>
+  <tr><td>发送消息</td><td>✓</td><td>✓</td><td>✓</td></tr>
+  <tr><td>查看群资源</td><td>✓</td><td>✓</td><td>✓</td></tr>
+</table>
+
+<p><span class="req-id">FR-C-07</span> <strong>退出与解散：</strong></p>
+<ul>
+  <li>退出课程操作增加<strong>二次确认</strong>。</li>
+  <li>学生退出后<strong>移出班级群、收回课程全部访问权限</strong>。</li>
+  <li>主讲教师<strong>无法退出自身主讲课程</strong>，可<strong>移交群主、解散群聊</strong>。</li>
+  <li>教师拥有<strong>移出学生</strong>权限。</li>
+</ul>
+
+<p><span class="req-id">FR-C-08</span> <strong>举报：</strong>举报入口提供违规发言、违规文件等举报类型，支持附带截图、定位消息，提交后后台审核。</p>
+
+<p><span class="req-id">FR-C-09</span> <strong>消息能力：</strong>支持文字、图片、文件、表情包；消息<strong>限时可撤回</strong>，支持 @ 指定成员；消息多端同步，未读消息<strong>红点展示</strong>。</p>
+
+<p><span class="req-id">FR-C-10</span> <strong>消息免打扰：</strong>两种模式——<strong>关闭推送通知、保留红点</strong> / <strong>全部屏蔽</strong>。</p>
+
+<div class="demo" id="demo-group">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 班级群（FR-C-01 / FR-C-04 / FR-C-06）</span>
+    <span>群详情 · 文件归档分类 · 角色权限联动</span>
+  </div>
+  <div class="demo-body">
+    <div class="group-layout">
+      <!-- 左：文件归档 -->
+      <div class="group-panel">
+        <h4>📁 群文件归档</h4>
+        <div class="file-tabs" id="file-tabs">
+          <button class="active" data-ft="all">全部</button>
+          <button data-ft="doc">文档</button>
+          <button data-ft="image">图片</button>
+          <button data-ft="video">视频</button>
+        </div>
+        <div id="file-list"></div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="demo-btn">批量下载</button>
+          <select class="demo-btn"><option>按上传时间筛选</option><option>近 7 天</option><option>近 30 天</option></select>
+        </div>
+      </div>
+
+      <!-- 右：角色权限 -->
+      <div class="group-panel">
+        <h4>👥 群角色权限（切换角色查看）</h4>
+        <div class="role-switch" id="role-switch">
+          <button class="active" data-role="teacher">授课教师</button>
+          <button data-role="ta">助教</button>
+          <button data-role="student">学生</button>
+        </div>
+        <div id="perm-list"></div>
+        <div style="margin-top:10px;padding:8px;background:#fef2f2;border-radius:6px;font-size:12px;color:var(--danger)">
+          ⚠️ 学生退出课程需二次确认；主讲教师不可退出自身主讲课程
+        </div>
+      </div>
+    </div>
+
+    <!-- 聊天消息流 -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span>💬 班级群聊天</span>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <span class="seg" id="dnd-mode">
+            <button class="active" data-d="off">消息提醒</button>
+            <button data-d="mute">免打扰(红点)</button>
+            <button data-d="all">全部屏蔽</button>
+          </span>
+        </span>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-toolbar">
+        <button class="chat-tool" title="表情" onclick="insertEmoji()">😊</button>
+        <button class="chat-tool" title="图片" onclick="sendImage()">🖼️</button>
+        <button class="chat-tool" title="文件" onclick="sendFile()">📎</button>
+        <button class="chat-tool" title="@成员" onclick="insertAt()">@</button>
+        <input class="chat-input" id="chat-input" placeholder="输入消息…（支持 @成员）" onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="demo-btn primary" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 7. 全局通用模块 ===== -->
+<h2 id="global">7. 全局通用模块</h2>
+
+<!-- 7.1 我的页面 -->
+<h3 id="g-mine">7.1 我的页面</h3>
+
+<p><strong>个人资料：</strong>头像、昵称、学号/工号、个人简介，页面区分展示<strong>学生、教师身份标签</strong>。支持修改登录密码、绑定手机号、绑定第三方账号。</p>
+
+<p><strong>消息中心：</strong>独立于群聊，统一收纳：系统通知、上课提醒、签到提醒、作业批阅通知、充值订单通知、举报反馈通知。</p>
+
+<div class="demo" id="demo-message">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 消息中心</span>
+    <span>分类标签 · 已读/未读 · 全部已读 · 删除</span>
+  </div>
+  <div class="demo-body">
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+      <div class="seg" id="msg-filter">
+        <button class="active" data-f="all">全部</button>
+        <button data-f="系统通知">系统通知</button>
+        <button data-f="上课提醒">上课提醒</button>
+        <button data-f="签到提醒">签到提醒</button>
+        <button data-f="作业批阅">作业批阅</button>
+        <button data-f="充值订单">充值订单</button>
+        <button data-f="举报反馈">举报反馈</button>
+      </div>
+      <button class="demo-btn" style="margin-left:auto;font-size:12px;padding:4px 12px" onclick="markAllRead()">全部已读</button>
+    </div>
+    <div id="msg-list"></div>
+  </div>
+</div>
+
+<p><strong>设置页面：</strong>推送分项开关、浅色/深色主题切换、缓存清理、账号安全、隐私设置、关于我们、客服反馈入口。</p>
+
+<table>
+  <tr><th>身份</th><th>额外入口</th></tr>
+  <tr><td>学生</td><td>我的金币、我的笔记、我的课程、我的学分、关注列表</td></tr>
+  <tr><td>教师</td><td>我教授的课程、我的题库、互动任务管理、学分总览、讲师主页管理</td></tr>
+</table>
+
+<div class="demo" id="demo-mine">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 我的页面（7.1）</span>
+    <span>学生/教师身份切换 · 差异化入口</span>
+  </div>
+  <div class="demo-body">
+    <div class="mine-switch" id="mine-switch">
+      <button class="active" data-role="student">学生身份</button>
+      <button data-role="teacher">教师身份</button>
+    </div>
+    <div class="mine-profile">
+      <div class="mine-avatar" id="mine-avatar">学</div>
+      <div>
+        <div style="font-weight:600;font-size:15px">小明 <span class="mine-role-tag student" id="mine-role-tag">学生</span></div>
+        <div style="font-size:12px;color:var(--text-muted)" id="mine-id">学号：2026001</div>
+      </div>
+    </div>
+    <div class="mine-grid" id="mine-grid"></div>
+  </div>
+</div>
+
+<!-- 7.2 权限体系 -->
+<h3 id="g-perm">7.2 权限体系</h3>
+
+<ul>
+  <li>角色：学生、授课教师、助教、后台管理员；不同角色<strong>隔离可见页面、操作按钮</strong>。</li>
+  <li>未加入课程的用户<strong>无法访问</strong>课程页面、班级群、课程内专属笔记。</li>
+  <li>教师<strong>仅可查看自己授课课程内</strong>学生数据，无法跨课程获取其他班级学生信息。</li>
+</ul>
+
+<!-- 7.3 资源存储与安全 -->
+<h3 id="g-storage">7.3 资源存储与安全</h3>
+<ul>
+  <li>图片、文件上传设置<strong>大小上限</strong>，上传图片<strong>自动压缩</strong>。</li>
+  <li>所有上传资源进入<strong>内容审核</strong>，违规资源自动屏蔽。</li>
+  <li>用户资源数据隔离，区分<strong>私有、课程可见、公开</strong>三种权限。</li>
+</ul>
+
+<div class="demo" id="demo-storage">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 资源存储与安全（7.3）</span>
+    <span>上传校验 · 自动压缩 · 内容审核</span>
+  </div>
+  <div class="demo-body">
+    <div class="upload-box" id="upload-box">
+      <div style="font-size:32px">📤</div>
+      <div style="margin:6px 0;font-size:13px">点击或拖拽文件上传</div>
+      <div style="font-size:11px;color:var(--text-muted)">图片上限 10MB，文件上限 50MB</div>
+      <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        <button class="demo-btn" onclick="simulateUpload('pass')">模拟上传合规图片</button>
+        <button class="demo-btn danger" onclick="simulateUpload('block')">模拟上传违规文件</button>
+        <button class="demo-btn" onclick="simulateUpload('oversize')">模拟超大文件</button>
+      </div>
+    </div>
+    <div class="upload-progress"><div class="upload-progress-fill" id="upload-fill"></div></div>
+    <div id="audit-steps"></div>
+  </div>
+</div>
+
+<!-- 7.4 异常与交互反馈 -->
+<h3 id="g-exception">7.4 异常与交互反馈</h3>
+<ul>
+  <li><strong>弱网：</strong>笔记、表单编辑区域提示离线保存，网络恢复自动同步，版本冲突弹窗。</li>
+  <li><strong>操作反馈：</strong>充值、签到、提交任务、投币、退出课程等所有操作提供 Toast / 弹窗反馈，操作失败展示具体原因。</li>
+  <li><strong>空状态：</strong>全部列表配置规范空状态引导页面。</li>
+</ul>
+
+<div class="demo" id="demo-exception">
+  <div class="demo-header">
+    <span class="demo-title">交互演示 · 异常与交互反馈（7.4）</span>
+    <span>弱网离线 · Toast 反馈 · 空状态</span>
+  </div>
+  <div class="demo-body">
+    <div class="offline-banner" id="net-banner">
+      <span>📶</span><span id="net-text">网络正常</span>
+      <button class="demo-btn" style="margin-left:auto;padding:2px 10px;font-size:11px" onclick="toggleNet()">切换网络状态</button>
+    </div>
+    <div class="q-card">
+      <textarea class="q-essay" id="offline-note" placeholder="在此编辑笔记，弱网下自动离线保存…">第三章 二叉树遍历</textarea>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="save-hint">实时自动保存到云端</div>
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">Toast 操作反馈</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="demo-btn" onclick="showToast('签到成功','success')">成功 Toast</button>
+        <button class="demo-btn danger" onclick="showToast('金币余额不足','error')">失败 Toast</button>
+        <button class="demo-btn" onclick="showToast('正在同步数据…','info')">信息 Toast</button>
+        <button class="demo-btn" onclick="showToast('高频操作触发风控','warning')">警告 Toast</button>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">空状态引导</div>
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <div>暂无笔记</div>
+        <div style="font-size:12px;margin-top:4px">点击右上方 + 新建笔记</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7.5 助教角色 -->
+<h3 id="g-ta">7.5 助教角色</h3>
+<ul>
+  <li>助教由<strong>主讲教师添加</strong>。</li>
+  <li>权限范围：发布签到任务、查看各类台账、批阅作业、维护群公告。</li>
+  <li><strong>不可</strong>修改课程基础配置、调整学分规则、删除课程。</li>
+</ul>
+
+<!-- ===== 8. 选择性优化建议 ===== -->
+<h2 id="optional">8. 选择性优化建议</h2>
+<p>以下为 P2 级建议，按需排期：</p>
+<ol>
+  <li>笔记支持分享至班级群，支持笔记引用课件、课程视频时间节点。</li>
+  <li>课表支持一键导出为图片，方便分享。</li>
+  <li>金币新增免费获取渠道，完成平台优质内容发布任务可领取少量金币。</li>
+  <li>随堂练习支持题目随机乱序，可开启作答切屏提醒。</li>
+  <li>班级群内设置快捷签到入口，无需跳转课程页面。</li>
+  <li>讲师主页增设匿名评价区，学生可对授课教师评价。</li>
+  <li>签到、学分、练习等所有统计台账统一支持导出 Excel。</li>
+  <li>课程、签到任务、随堂练习自动汇总至个人待办清单。</li>
+</ol>
+
+<!-- ===== 9. 共享规则 ===== -->
+<h2 id="shared">9. 共享规则</h2>
+
+<h3>9.1 通知规则</h3>
+<table>
+  <tr><th>事件</th><th>通知对象</th><th>渠道</th></tr>
+  <tr><td>互动任务发布/截止</td><td>课程内学生</td><td>群消息 + 消息中心</td></tr>
+  <tr><td>签到开始</td><td>课程内学生</td><td>群消息 + 推送</td></tr>
+  <tr><td>作业批阅完成</td><td>作答学生</td><td>消息中心</td></tr>
+  <tr><td>群公告发布/修改</td><td>全部群成员</td><td>群消息推送</td></tr>
+  <tr><td>上课日程提醒</td><td>开启提醒的学生</td><td>推送</td></tr>
+  <tr><td>充值/投币结果</td><td>操作用户</td><td>消息中心</td></tr>
+  <tr><td>被随机抽选</td><td>被选中学生</td><td>推送 + 消息中心</td></tr>
+</table>
+
+<h3>9.2 数据保留与清理</h3>
+<table>
+  <tr><th>对象</th><th>保留策略</th></tr>
+  <tr><td>回收站笔记</td><td>30 天后自动永久删除</td></tr>
+  <tr><td>群文件</td><td>按配置的过期清理策略清理</td></tr>
+  <tr><td>互动任务台账</td><td>跟随课程生命周期保留 <span class="badge badge-tbd">TBD</span></td></tr>
+  <tr><td>本地聊天缓存</td><td>可手动清空，云端保留</td></tr>
+</table>
+
+<h3>9.3 二次确认与不可逆操作</h3>
+<p>以下操作必须二次确认：永久删除笔记、退出课程、解散群聊、账号注销（金币清零）。</p>
+
+<h3>9.4 版本冲突处理</h3>
+<p>笔记离线编辑产生版本冲突时，弹窗展示两个版本的修改时间与差异摘要，由用户选择保留版本。选择后覆盖另一版本，被覆盖版本不保留 <span class="badge badge-assumption">Assumption</span>。</p>
+
+<!-- ===== 10. 开放问题 ===== -->
+<h2 id="open">10. 开放问题</h2>
+
+<table>
+  <tr><th>编号</th><th>问题</th><th>影响</th></tr>
+  <tr><td>Q1</td><td>课表导入「追加模式」冲突时段的处理策略（后导入覆盖 / 保留原有 / 弹窗选择）？</td><td>影响导入流程设计</td></tr>
+  <tr><td>Q2</td><td>互动任务台账的保留周期与课程结束后是否归档只读？</td><td>影响数据存储策略</td></tr>
+  <tr><td>Q3</td><td>金币开票的税率、发票类型与开票主体由谁承担？</td><td>影响财务流程</td></tr>
+  <tr><td>Q4</td><td>匿名问卷的数据是否在教师端完全脱敏（含提交时间/IP）？</td><td>影响匿名可信度</td></tr>
+  <tr><td>Q5</td><td>讲师主页「公开课件资源」是否需要版权/审核机制？</td><td>影响内容安全</td></tr>
+  <tr><td>Q6</td><td>位置签到的虚拟定位校验技术方案（系统级/SDK）？</td><td>影响签到可靠性</td></tr>
+</table>
+
+</main>
+</div>
+
+<script>
+  // TOC active highlight on scroll
+  const sections = document.querySelectorAll('main h2, main h3');
+  const tocLinks = document.querySelectorAll('nav.toc a');
+  const tocMap = {};
+  tocLinks.forEach(a => { tocMap[a.getAttribute('href').slice(1)] = a; });
+  function onScroll() {
+    let current = '';
+    sections.forEach(s => {
+      const rect = s.getBoundingClientRect();
+      if (rect.top <= 80) current = s.id;
+    });
+    tocLinks.forEach(a => a.classList.remove('active'));
+    if (current && tocMap[current]) tocMap[current].classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // ===== Demo: Schedule view toggle =====
+  document.querySelectorAll('#sched-tabs .demo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#sched-tabs .demo-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const view = tab.dataset.view;
+      document.getElementById('sched-week').style.display = view === 'week' ? 'block' : 'none';
+      document.getElementById('sched-month').style.display = view === 'month' ? 'block' : 'none';
+      if (view === 'month') buildCalendar();
+    });
+  });
+
+  function buildCalendar() {
+    const grid = document.getElementById('cal-grid');
+    if (grid.children.length) return;
+    const days = ['一','二','三','四','五','六','日'];
+    const header = days.map(d => `<div style="text-align:center;font-weight:600;padding:6px;font-size:12px">${d}</div>`).join('');
+    // 2026-11: Nov 1 is Sunday. Build 5 weeks starting Mon Oct 26.
+    const startDay = new Date(2026, 9, 26); // Oct 26 (Mon)
+    let cells = header;
+    const courses = {
+      2: [{n:'高数',c:'c1'},{n:'数据结构',c:'c3'}], 3: [{n:'英语',c:'c2'}],
+      5: [{n:'体育',c:'c4'}], 9: [{n:'高数',c:'c1'}], 10: [{n:'数据结构',c:'c3'}],
+      12: [{n:'英语',c:'c2'}], 16: [{n:'高数',c:'c1'}], 17: [{n:'体育',c:'c4'}]
+    };
+    for (let i = 0; i < 35; i++) {
+      const d = new Date(startDay);
+      d.setDate(d.getDate() + i);
+      const m = d.getMonth(), day = d.getDate();
+      const isNov = m === 10;
+      const dots = (courses[day] && isNov) ? courses[day].map(c => `<span class="cal-dot" style="background:var(--${c==='c1'?'primary':c==='c2'?'success':c==='c3'?'warning':'danger'})"></span>`).join('') : '';
+      const names = (courses[day] && isNov) ? courses[day].map(c=>c.n).join('、') : '';
+      cells += `<div class="cal-cell ${isNov?'':'other-month'}" data-day="${day}" data-courses="${names}">
+        <div class="date-num">${day}</div>${dots}
+      </div>`;
+    }
+    grid.innerHTML = cells;
+    grid.querySelectorAll('.cal-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const list = document.getElementById('cal-day-list');
+        const names = cell.dataset.courses;
+        list.classList.add('show');
+        list.innerHTML = names ? `<strong>${cell.dataset.day} 日课程：</strong>${names}` : `${cell.dataset.day} 日：无课`;
+      });
+    });
+  }
+
+  let themeIdx = 0;
+  const themes = [
+    {border:'#000',bg:'#fff',name:'白底黑框'},
+    {border:'#3b82f6',bg:'#eff6ff',name:'蓝色主题'},
+    {border:'#10b981',bg:'#f0fdf4',name:'绿色主题'}
+  ];
+  function toggleTheme(btn) {
+    themeIdx = (themeIdx + 1) % themes.length;
+    const t = themes[themeIdx];
+    const tbl = document.getElementById('sched-table');
+    tbl.querySelectorAll('th,td').forEach(c => { c.style.borderColor = t.border; c.style.background = c.tagName==='TH' ? '#f1f5f9' : t.bg; });
+    btn.textContent = t.name;
+  }
+
+  // ===== Demo: Note auto-save =====
+  const noteArea = document.getElementById('note-area');
+  const saveStatus = document.getElementById('save-status');
+  let saveTimer;
+  noteArea.addEventListener('input', () => {
+    saveStatus.textContent = '● 正在保存…';
+    saveStatus.classList.add('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveStatus.textContent = '● 已保存 ' + new Date().toLocaleTimeString('zh-CN',{hour12:false});
+      saveStatus.classList.remove('saving');
+    }, 800);
+  });
+
+  function setPerm(btn) {
+    btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ----- Note trash bin -----
+  let trashNotes = [
+    { id:1, title:'操作系统复习笔记', deletedAt:Date.now()-3*86400000, daysLeft:27 },
+    { id:2, title:'英语作文草稿', deletedAt:Date.now()-15*86400000, daysLeft:15 },
+    { id:3, title:'高数错题本', deletedAt:Date.now()-28*86400000, daysLeft:2 },
+  ];
+  document.querySelectorAll('#note-tab button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#note-tab button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const t = b.dataset.t;
+      document.getElementById('note-editor-view').style.display = t==='editor' ? '' : 'none';
+      document.getElementById('note-trash-view').style.display = t==='trash' ? '' : 'none';
+      if (t==='trash') renderTrash();
+    });
+  });
+  function renderTrash() {
+    const box = document.getElementById('trash-list');
+    if (!trashNotes.length) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">🗑️</div><div>回收站为空</div><div style="font-size:12px;margin-top:4px">删除的笔记会在此保留 30 天</div></div>';
+      return;
+    }
+    box.innerHTML = trashNotes.map(n => `
+      <div class="trash-item">
+        <div class="trash-info">
+          <div class="trash-title">${n.title}</div>
+          <div class="trash-meta">删除于 ${new Date(n.deletedAt).toLocaleDateString('zh-CN')}</div>
+        </div>
+        <span class="trash-days">${n.daysLeft>0?'剩余 '+n.daysLeft+' 天':'即将清理'}</span>
+        <div class="trash-actions">
+          <button class="demo-btn" style="font-size:12px;padding:4px 10px" onclick="restoreNote(${n.id})">恢复</button>
+          <button class="demo-btn danger" style="font-size:12px;padding:4px 10px" onclick="deleteNoteForever(${n.id})">永久删除</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  function restoreNote(id) {
+    const n = trashNotes.find(x => x.id === id);
+    if (!n) return;
+    trashNotes = trashNotes.filter(x => x.id !== id);
+    renderTrash();
+    showToast(`「${n.title}」已恢复到笔记本`,'success');
+  }
+  function deleteNoteForever(id) {
+    const n = trashNotes.find(x => x.id === id);
+    if (!n) return;
+    if (!confirm(`⚠️ 永久删除「${n.title}」？此操作不可恢复！`)) return;
+    trashNotes = trashNotes.filter(x => x.id !== id);
+    renderTrash();
+    showToast('笔记已永久删除','info');
+  }
+  function emptyTrash() {
+    if (!trashNotes.length) { showToast('回收站已为空','info'); return; }
+    if (!confirm(`⚠️ 确认清空回收站？共 ${trashNotes.length} 篇笔记将被永久删除，不可恢复！`)) return;
+    trashNotes = [];
+    renderTrash();
+    showToast('回收站已清空','info');
+  }
+
+  // ===== Demo: Sign-in tab switching =====
+  document.querySelectorAll('#signin-tabs .demo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#signin-tabs .demo-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.signin-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    });
+  });
+
+  // Pattern drawing
+  document.querySelectorAll('.pattern-dot').forEach(dot => {
+    dot.addEventListener('click', () => dot.classList.toggle('on'));
+  });
+
+  // ============================================================
+  // Demo: Follow page (data-driven: filter / search / sort / unfollow)
+  // ============================================================
+  const followData = [
+    { id:1, cat:'teacher', title:'王教授', time:'2分钟前', followTime:'2026-09-01', update:true, icon:'👨‍🏫' },
+    { id:2, cat:'course', title:'数据结构', time:'1小时前', followTime:'2026-09-05', update:true, icon:'📚' },
+    { id:3, cat:'note', title:'《高数积分技巧总结》', time:'昨天', followTime:'2026-10-10', update:false, icon:'📝' },
+    { id:4, cat:'activity', title:'校园编程大赛', time:'3天前', followTime:'2026-10-20', update:true, icon:'🏆' },
+    { id:5, cat:'teacher', title:'李老师', time:'5天前', followTime:'2026-09-12', update:false, icon:'👩‍🏫' },
+    { id:6, cat:'course', title:'大学英语', time:'1周前', followTime:'2026-09-05', update:false, icon:'📖' },
+  ];
+  let followState = { cat:'all', sort:'update', keyword:'' };
+
+  function renderFollow() {
+    const list = document.getElementById('follow-list');
+    let items = followData.filter(f => f.cat === followState.cat || followState.cat === 'all');
+    if (followState.keyword) {
+      const kw = followState.keyword.toLowerCase();
+      items = items.filter(f => f.title.toLowerCase().includes(kw));
+    }
+    items.sort((a,b) => followState.sort === 'update'
+      ? a.time.localeCompare(b.time)
+      : b.followTime.localeCompare(a.followTime));
+    if (items.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px">暂无匹配的关注内容</div>';
+      return;
+    }
+    list.innerHTML = items.map(f => `
+      <div class="follow-item" data-id="${f.id}">
+        <div class="follow-cover">${f.icon}</div>
+        <div class="follow-info">
+          <div class="follow-title">${f.title} ${f.update ? '<span class="red-dot"></span>' : ''}</div>
+          <div class="follow-time">更新于 ${f.time} · 分类：${ {teacher:'教师',course:'课程',note:'公开笔记',activity:'活动'}[f.cat] }</div>
+        </div>
+        <div class="follow-actions">
+          <button class="demo-btn" onclick="unfollow(${f.id})">取消关注</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  function unfollow(id) {
+    const idx = followData.findIndex(f => f.id === id);
+    if (idx > -1) { followData.splice(idx, 1); renderFollow(); }
+  }
+  document.querySelectorAll('#follow-cats .demo-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('#follow-cats .demo-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      followState.cat = t.dataset.cat;
+      renderFollow();
+    });
+  });
+  document.querySelectorAll('#follow-list').forEach(()=>{}); // placeholder
+  document.querySelectorAll('.seg button[data-sort]').forEach(b => {
+    b.addEventListener('click', () => {
+      b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      followState.sort = b.dataset.sort;
+      renderFollow();
+    });
+  });
+  document.getElementById('follow-search').addEventListener('input', e => {
+    followState.keyword = e.target.value.trim();
+    renderFollow();
+  });
+  renderFollow();
+
+  // ============================================================
+  // Demo: Coin system (balance / recharge / tip / ledger linkage)
+  // ============================================================
+  let coinState = {
+    balance: 120,
+    channel: '微信',
+    amount: 50, // yuan
+    ledger: [
+      { time:'2026-11-15 14:20', type:'充值（微信）', delta:+500, balance:620 },
+      { time:'2026-11-15 16:05', type:'投币-数据结构笔记', delta:-5, balance:615 },
+      { time:'2026-11-16 09:10', type:'投币-英语作文范文', delta:-10, balance:605 },
+      { time:'2026-11-16 20:30', type:'消费-笔记模板', delta:-485, balance:120 },
+    ]
+  };
+  function renderCoin() {
+    document.getElementById('coin-balance').textContent = coinState.balance;
+    const tb = document.querySelector('#coin-ledger tbody');
+    tb.innerHTML = coinState.ledger.map(r => `
+      <tr>
+        <td>${r.time}</td>
+        <td>${r.type}</td>
+        <td class="${r.delta>0?'in':'out'}">${r.delta>0?'+':''}${r.delta}</td>
+        <td>${r.balance}</td>
+      </tr>
+    `).join('');
+  }
+  document.querySelectorAll('.coin-ch').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.coin-ch').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      coinState.channel = c.dataset.ch;
+    });
+  });
+  document.querySelectorAll('.coin-amt').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelectorAll('.coin-amt').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+      coinState.amount = Number(a.dataset.yuan);
+      document.getElementById('btn-recharge').textContent = `确认充值 ${coinState.amount*10} 金币（¥${coinState.amount}）`;
+    });
+  });
+  document.getElementById('btn-recharge').addEventListener('click', () => {
+    const add = coinState.amount * 10;
+    coinState.balance += add;
+    coinState.ledger.unshift({
+      time: new Date().toLocaleString('zh-CN',{hour12:false}),
+      type: `充值（${coinState.channel}）`,
+      delta: +add,
+      balance: coinState.balance
+    });
+    renderCoin();
+    alert(`充值成功！+${add} 金币（${coinState.channel}，¥${coinState.amount}）`);
+  });
+  document.getElementById('btn-like').addEventListener('click', e => {
+    e.target.textContent = '👍 已点赞';
+    e.target.disabled = true;
+  });
+  document.getElementById('btn-tip').addEventListener('click', () => {
+    const n = Number(document.getElementById('coin-num').value);
+    if (coinState.balance < n) { alert('金币不足，请先充值'); return; }
+    if (!confirm(`确认投币 ${n} 金币给作者？`)) return;
+    coinState.balance -= n;
+    coinState.ledger.unshift({
+      time: new Date().toLocaleString('zh-CN',{hour12:false}),
+      type: '投币-数据结构笔记',
+      delta: -n,
+      balance: coinState.balance
+    });
+    renderCoin();
+  });
+  renderCoin();
+
+  // ============================================================
+  // Demo: In-class practice (question bank / editor / auto-grade)
+  // ============================================================
+  let questionBank = [
+    { id:1, title:'1. 下列哪种数据结构是先进先出（FIFO）？', type:'single',
+      opts:['栈(Stack)','队列(Queue)','二叉树','哈希表'], answer:1,
+      analysis:'队列遵循先进先出原则，栈是后进先出。' },
+    { id:2, title:'2. 以下属于线性结构的有（多选）？', type:'multi',
+      opts:['数组','链表','栈','图'], answer:[0,1,2],
+      analysis:'图是非线性结构，数组、链表、栈均为线性结构。' },
+    { id:3, title:'3. 满二叉树一定是完全二叉树。', type:'judge',
+      opts:['正确','错误'], answer:0,
+      analysis:'满二叉树的每一层都被完全填满，因此一定是完全二叉树。' },
+    { id:4, title:'4. 快速排序的平均时间复杂度为 O(____)。', type:'fill',
+      answer:'nlogn',
+      analysis:'快速排序平均时间复杂度 O(nlogn)，最坏 O(n²)。' },
+  ];
+  let pracState = { currentIdx:0, ansTiming:'submit', viewMode:'edit', submitted:false };
+  const typeNames = { single:'单选题', multi:'多选题', judge:'判断题', fill:'填空题', essay:'简答题', image:'图片题' };
+
+  function renderQuestionList() {
+    document.getElementById('question-list').innerHTML = questionBank.map((q,i) => `
+      <button class="${i===pracState.currentIdx?'active':''}" onclick="selectQuestion(${i})">${i+1}. ${typeNames[q.type]}</button>
+    `).join('');
+  }
+  function selectQuestion(i) {
+    pracState.currentIdx = i;
+    pracState.submitted = false;
+    renderQuestionList();
+    if (pracState.viewMode === 'edit') renderEditor(); else renderPreview();
+  }
+
+  function renderEditor() {
+    const q = questionBank[pracState.currentIdx];
+    if (!q) { document.getElementById('edit-view').innerHTML = '<div class="empty-state"><div class="icon">📭</div>暂无题目，请点击「新增题目」</div>'; return; }
+    document.getElementById('edit-type').value = q.type;
+    document.getElementById('edit-title').value = q.title;
+    document.getElementById('edit-analysis').value = q.analysis || '';
+    renderEditOptions(q);
+  }
+  function renderEditOptions(q) {
+    const box = document.getElementById('edit-options');
+    if (q.type === 'single' || q.type === 'judge' || q.type === 'multi') {
+      const isMulti = q.type === 'multi';
+      box.innerHTML = `
+        <label style="font-size:13px">选项（${isMulti?'点击设置多个正确答案':'点击设置正确答案'}）：</label>
+        ${q.opts.map((o,i) => `
+          <div style="display:flex;gap:6px;margin:4px 0;align-items:center">
+            <input type="${isMulti?'checkbox':'radio'}" name="ans" data-i="${i}" ${isMulti?(q.answer.includes(i)?'checked':''):(q.answer===i?'checked':'')}>
+            <input class="q-fill" value="${o.replace(/"/g,'&quot;')}" data-oi="${i}" placeholder="选项内容">
+            <button class="demo-btn danger" style="padding:2px 8px;font-size:11px" onclick="removeOption(${i})">删</button>
+          </div>`).join('')}
+        <button class="demo-btn" style="margin-top:6px;font-size:12px" onclick="addOption()">+ 添加选项</button>`;
+    } else if (q.type === 'fill') {
+      box.innerHTML = `<label style="font-size:13px">正确答案：</label>
+        <input class="q-fill" id="fill-answer" value="${q.answer||''}" placeholder="请输入正确答案">`;
+    } else {
+      box.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:8px;background:#f8fafc;border-radius:6px">💡 ${typeNames[q.type]}为主观题，无需设置标准答案，提交后由教师批阅。</div>`;
+    }
+  }
+  function addOption() {
+    const q = questionBank[pracState.currentIdx];
+    q.opts = q.opts || [];
+    q.opts.push('新选项');
+    renderEditOptions(q);
+  }
+  function removeOption(i) {
+    const q = questionBank[pracState.currentIdx];
+    q.opts.splice(i, 1);
+    if (q.type === 'multi') q.answer = q.answer.filter(x => x !== i).map(x => x > i ? x-1 : x);
+    else if (q.answer === i) q.answer = 0;
+    else if (q.answer > i) q.answer--;
+    renderEditOptions(q);
+  }
+  function saveQuestion() {
+    const q = questionBank[pracState.currentIdx];
+    q.title = document.getElementById('edit-title').value.trim();
+    q.type = document.getElementById('edit-type').value;
+    q.analysis = document.getElementById('edit-analysis').value.trim();
+    if (q.type === 'single' || q.type === 'judge' || q.type === 'multi') {
+      q.opts = [...document.querySelectorAll('#edit-options input[data-oi]')].map(i => i.value.trim());
+      if (q.type === 'multi') {
+        q.answer = [...document.querySelectorAll('#edit-options input[name=ans]:checked')].map(i => Number(i.dataset.i));
+      } else {
+        const c = document.querySelector('#edit-options input[name=ans]:checked');
+        q.answer = c ? Number(c.dataset.i) : 0;
+      }
+    } else if (q.type === 'fill') {
+      q.answer = document.getElementById('fill-answer').value.trim();
+    }
+    document.getElementById('save-status').textContent = '✓ 已保存';
+    setTimeout(() => document.getElementById('save-status').textContent = '', 1500);
+    renderQuestionList();
+  }
+  document.getElementById('edit-type').addEventListener('change', e => {
+    const q = questionBank[pracState.currentIdx];
+    q.type = e.target.value;
+    if ((q.type === 'single' || q.type === 'multi' || q.type === 'judge') && (!q.opts || !q.opts.length)) {
+      q.opts = q.type === 'judge' ? ['正确','错误'] : ['选项A','选项B'];
+      q.answer = q.type === 'multi' ? [0] : 0;
+    }
+    renderEditOptions(q);
+  });
+  function deleteQuestion() {
+    if (!confirm('确认删除此题目？')) return;
+    questionBank.splice(pracState.currentIdx, 1);
+    if (pracState.currentIdx >= questionBank.length) pracState.currentIdx = Math.max(0, questionBank.length - 1);
+    renderQuestionList();
+    renderEditor();
+  }
+  function addQuestion() {
+    const newId = Date.now();
+    questionBank.push({ id:newId, title:`${questionBank.length+1}. 新题目`, type:'single', opts:['选项A','选项B'], answer:0, analysis:'' });
+    pracState.currentIdx = questionBank.length - 1;
+    renderQuestionList();
+    renderEditor();
+  }
+
+  function renderPreview() {
+    const q = questionBank[pracState.currentIdx];
+    const c = document.getElementById('q-container');
+    pracState.submitted = false;
+    if (!q) { c.innerHTML = '<div class="empty-state"><div class="icon">📭</div>暂无题目</div>'; return; }
+    let body = '';
+    if (q.type === 'single' || q.type === 'judge') {
+      body = q.opts.map((o,i) => `<label class="q-opt" data-i="${i}"><input type="radio" name="q"> <span>${String.fromCharCode(65+i)}. ${o}</span></label>`).join('');
+    } else if (q.type === 'multi') {
+      body = q.opts.map((o,i) => `<label class="q-opt" data-i="${i}"><input type="checkbox"> <span>${String.fromCharCode(65+i)}. ${o}</span></label>`).join('');
+    } else if (q.type === 'fill') {
+      body = `<input class="q-fill" id="fill-ans" placeholder="请输入答案">`;
+    } else if (q.type === 'essay') {
+      body = `<textarea class="q-essay" placeholder="请输入作答内容…"></textarea><div class="q-feedback subj" style="margin-top:8px">💡 主观题，提交后由教师批阅</div>`;
+    } else {
+      body = `<div class="q-card" style="text-align:center;border:2px dashed var(--border);background:#fff">📷 <button class="demo-btn" style="margin:6px">拍照上传</button> <button class="demo-btn" style="margin:6px">选择图片</button><div class="q-feedback subj" style="margin-top:8px">💡 图片题，提交后由教师批阅</div></div>`;
+    }
+    c.innerHTML = `<div class="q-card"><div class="q-title">${q.title}</div>${body}<div class="q-feedback" id="q-fb"></div></div>`;
+    c.querySelectorAll('.q-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (pracState.submitted) return;
+        const input = opt.querySelector('input');
+        if (input.type === 'radio') { c.querySelectorAll('.q-opt input').forEach(i => i.checked = false); input.checked = true; }
+        else { input.checked = !input.checked; }
+      });
+    });
+  }
+
+  document.getElementById('btn-submit').addEventListener('click', () => {
+    if (pracState.submitted) return;
+    const q = questionBank[pracState.currentIdx];
+    const fb = document.getElementById('q-fb');
+    const c = document.getElementById('q-container');
+    if (q.type === 'single' || q.type === 'judge') {
+      const sel = c.querySelector('.q-opt input:checked');
+      if (!sel) { alert('请先选择答案'); return; }
+      const idx = Number(sel.closest('.q-opt').dataset.i);
+      c.querySelectorAll('.q-opt').forEach((o,i) => { if (i === q.answer) o.classList.add('correct'); else if (i === idx) o.classList.add('wrong'); });
+      const ok = idx === q.answer;
+      fb.className = 'q-feedback show ' + (ok?'ok':'no');
+      fb.textContent = (ok?'✓ 回答正确！':'✗ 回答错误。') + ' 解析：' + q.analysis;
+      pracState.submitted = true;
+    } else if (q.type === 'multi') {
+      const sel = [...c.querySelectorAll('.q-opt input:checked')].map(i => Number(i.closest('.q-opt').dataset.i)).sort();
+      if (sel.length === 0) { alert('请先选择答案'); return; }
+      const correct = JSON.stringify(sel) === JSON.stringify([...q.answer].sort());
+      c.querySelectorAll('.q-opt').forEach((o,i) => { if (q.answer.includes(i)) o.classList.add('correct'); else if (sel.includes(i)) o.classList.add('wrong'); });
+      fb.className = 'q-feedback show ' + (correct?'ok':'no');
+      fb.textContent = (correct?'✓ 回答正确！':'✗ 回答错误。') + ' 解析：' + q.analysis;
+      pracState.submitted = true;
+    } else if (q.type === 'fill') {
+      const val = document.getElementById('fill-ans').value.trim().toLowerCase().replace(/\s/g,'');
+      if (!val) { alert('请先输入答案'); return; }
+      const ok = val === (q.answer||'').toLowerCase();
+      const inp = document.getElementById('fill-ans');
+      inp.style.borderColor = ok ? 'var(--success)' : 'var(--danger)';
+      fb.className = 'q-feedback show ' + (ok?'ok':'no');
+      fb.textContent = (ok?'✓ 回答正确！':'✗ 回答错误。参考答案：' + q.answer) + ' 解析：' + q.analysis;
+      pracState.submitted = true;
+    } else {
+      fb.className = 'q-feedback show subj';
+      fb.textContent = pracState.ansTiming === 'submit' ? '已提交，等待教师批阅。' : '已提交，答案解析将在全部任务结束后公布。';
+      pracState.submitted = true;
+    }
+  });
+
+  // 视图切换
+  document.querySelectorAll('#view-mode button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#view-mode button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      pracState.viewMode = b.dataset.v;
+      document.getElementById('edit-view').style.display = pracState.viewMode === 'edit' ? '' : 'none';
+      document.getElementById('preview-view').style.display = pracState.viewMode === 'preview' ? '' : 'none';
+      if (pracState.viewMode === 'edit') renderEditor(); else renderPreview();
+    });
+  });
+  document.querySelectorAll('#ans-timing button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#ans-timing button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      pracState.ansTiming = b.dataset.t;
+    });
+  });
+  document.querySelectorAll('#pub-mode button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#pub-mode button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  renderQuestionList();
+  renderEditor();
+
+  // ----- Question import -----
+  function openImportModal() { document.getElementById('import-modal').classList.add('show'); }
+  function closeImportModal() { document.getElementById('import-modal').classList.remove('show'); }
+  document.getElementById('import-modal').addEventListener('click', e => {
+    if (e.target.id === 'import-modal') closeImportModal();
+  });
+  function downloadTemplate() {
+    const tpl = [
+      { title:'1. 单选题示例', type:'single', opts:['选项A','选项B','选项C','选项D'], answer:1, analysis:'这是答案解析' },
+      { title:'2. 多选题示例', type:'multi', opts:['选项A','选项B','选项C'], answer:[0,2], analysis:'解析' },
+      { title:'3. 填空题示例', type:'fill', answer:'正确答案', analysis:'解析' },
+    ];
+    const blob = new Blob([JSON.stringify(tpl, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = '题目导入模板.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('模板已下载','success');
+  }
+  function confirmImport() {
+    const raw = document.getElementById('import-json').value.trim();
+    const result = document.getElementById('import-result');
+    if (!raw) { result.innerHTML = '<span style="color:var(--danger)">请输入 JSON 数据</span>'; return; }
+    let data;
+    try { data = JSON.parse(raw); }
+    catch(e) { result.innerHTML = `<span style="color:var(--danger)">JSON 格式错误：${e.message}</span>`; return; }
+    if (!Array.isArray(data)) { result.innerHTML = '<span style="color:var(--danger)">数据必须是题目数组</span>'; return; }
+    // 校验每条题目
+    let valid = 0, invalid = 0;
+    const validItems = [];
+    data.forEach((q, i) => {
+      if (!q.title || !q.type) { invalid++; return; }
+      if (['single','multi','judge'].includes(q.type) && (!Array.isArray(q.opts) || q.opts.length < 2)) { invalid++; return; }
+      if (q.type === 'fill' && !q.answer) { invalid++; return; }
+      validItems.push({
+        id: Date.now() + i,
+        title: q.title,
+        type: q.type,
+        opts: q.opts || (q.type==='judge'?['正确','错误']:[]),
+        answer: q.answer !== undefined ? q.answer : (q.type==='multi'?[]:0),
+        analysis: q.analysis || ''
+      });
+      valid++;
+    });
+    const mode = document.querySelector('input[name=imp-mode]:checked').value;
+    if (mode === 'overwrite') {
+      if (!confirm(`覆盖导入将清空现有 ${questionBank.length} 道题目，确认继续？`)) return;
+      questionBank = validItems;
+    } else {
+      questionBank = questionBank.concat(validItems);
+    }
+    pracState.currentIdx = questionBank.length - 1;
+    renderQuestionList();
+    renderEditor();
+    result.innerHTML = `<span style="color:var(--success)">导入成功：${valid} 道有效，${invalid} 道已跳过</span>`;
+    showToast(`导入完成：新增 ${valid} 道题目`,'success');
+    setTimeout(() => { closeImportModal(); document.getElementById('import-json').value=''; result.innerHTML=''; }, 1500);
+  }
+
+  // ============================================================
+  // Demo: Class group (file archive filter + role permission matrix)
+  // ============================================================
+  const groupFiles = [
+    { name:'教学大纲.pdf', type:'doc', size:'1.2MB', time:'2026-11-10' },
+    { name:'课堂笔记.docx', type:'doc', size:'856KB', time:'2026-11-12' },
+    { name:'实验示意图.png', type:'image', size:'2.4MB', time:'2026-11-13' },
+    { name:'课程录像第3周.mp4', type:'video', size:'128MB', time:'2026-11-14' },
+    { name:'作业模板.xlsx', type:'doc', size:'45KB', time:'2026-11-15' },
+    { name:'板书照片.jpg', type:'image', size:'3.1MB', time:'2026-11-16' },
+  ];
+  const permMatrix = {
+    teacher: { '发布公告':true, '导出签到台账':true, '批阅作业':true, '修改课程配置':true, '调整学分规则':true, '删除课程':true, '发送消息':true, '查看群资源':true },
+    ta:      { '发布公告':true, '导出签到台账':true, '批阅作业':true, '修改课程配置':false, '调整学分规则':false, '删除课程':false, '发送消息':true, '查看群资源':true },
+    student: { '发布公告':false, '导出签到台账':false, '批阅作业':false, '修改课程配置':false, '调整学分规则':false, '删除课程':false, '发送消息':true, '查看群资源':true },
+  };
+  let groupState = { fileCat:'all', role:'teacher' };
+
+  function renderFiles() {
+    const list = document.getElementById('file-list');
+    const items = groupState.fileCat === 'all' ? groupFiles : groupFiles.filter(f => f.type === groupState.fileCat);
+    const icon = { doc:'📄', image:'🖼️', video:'🎬' };
+    list.innerHTML = items.length
+      ? items.map(f => `<div class="file-item"><span>${icon[f.type]}</span><span style="flex:1">${f.name}</span><span style="color:var(--text-muted);font-size:11px">${f.size} · ${f.time}</span></div>`).join('')
+      : '<div style="text-align:center;color:var(--text-muted);padding:14px;font-size:12px">该分类暂无文件</div>';
+  }
+  function renderPerm() {
+    const p = permMatrix[groupState.role];
+    document.getElementById('perm-list').innerHTML = Object.entries(p).map(([k,v]) => `
+      <div class="perm-row"><span>${k}</span><span class="${v?'perm-allow':'perm-deny'}">${v?'✓ 允许':'✗ 禁止'}</span></div>
+    `).join('');
+  }
+  document.querySelectorAll('#file-tabs button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#file-tabs button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      groupState.fileCat = b.dataset.ft;
+      renderFiles();
+    });
+  });
+  document.querySelectorAll('#role-switch button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#role-switch button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      groupState.role = b.dataset.role;
+      renderPerm();
+    });
+  });
+  renderFiles();
+  renderPerm();
+
+  // ----- Class group chat -----
+  let chatMsgs = [
+    { id:1, name:'王老师', role:'teacher', avatar:'王', type:'text', content:'同学们，今天上午10点随堂练习，请准时参加。', time:'09:30' },
+    { id:2, name:'李助教', role:'ta', avatar:'李', type:'text', content:'@全体成员 签到已开启，请尽快签到。', time:'09:32', at:true },
+    { id:3, name:'张三', role:'student', avatar:'张', type:'text', content:'好的老师，收到！', time:'09:33' },
+    { id:4, name:'王老师', role:'teacher', avatar:'王', type:'image', content:'板书照片', time:'09:35' },
+    { id:5, name:'李助教', role:'ta', avatar:'李', type:'file', content:'作业模板.xlsx', time:'09:40' },
+  ];
+  let chatDnd = 'off'; // off / mute / all
+  let chatUnread = 0;
+
+  function renderChat() {
+    const box = document.getElementById('chat-messages');
+    box.innerHTML = chatMsgs.map(m => {
+      const isMe = m.name === '我';
+      const avCls = m.role === 'ta' ? 'ta' : (m.role === 'student' ? 'stu' : '');
+      let content = '';
+      if (m.type === 'text') {
+        content = m.at ? m.content.replace(/@(\S+)/g, '<span class="chat-at">@$1</span>') : m.content;
+      } else if (m.type === 'image') {
+        content = `<div class="chat-img">🖼️</div><div style="font-size:11px;margin-top:4px">${m.content}</div>`;
+      } else if (m.type === 'file') {
+        content = `<div class="chat-file">📎 ${m.content}</div>`;
+      }
+      const recallBtn = isMe && m.type !== 'recalled'
+        ? `<div class="chat-actions"><button onclick="recallMsg(${m.id})">撤回</button></div>` : '';
+      if (m.type === 'recalled') {
+        return `<div class="chat-recall" style="text-align:center">${m.name} 撤回了一条消息</div>`;
+      }
+      return `<div class="chat-msg ${isMe?'me':''}">
+        <div class="chat-avatar ${avCls}">${m.avatar}</div>
+        <div>
+          <div class="chat-name">${m.name}</div>
+          <div class="chat-bubble">${content}${recallBtn}</div>
+          <div class="chat-time">${m.time}</div>
+        </div>
+      </div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+    // 更新未读红点
+    const header = document.querySelector('.chat-header span:first-child');
+    if (chatDnd === 'mute' && chatUnread > 0) {
+      header.innerHTML = `💬 班级群聊天 <span class="unread-dot"></span>`;
+    } else {
+      header.innerHTML = `💬 班级群聊天`;
+    }
+  }
+  function sendMessage() {
+    const inp = document.getElementById('chat-input');
+    const text = inp.value.trim();
+    if (!text) return;
+    chatMsgs.push({ id:Date.now(), name:'我', role:'student', avatar:'我', type:'text', content:text, time:new Date().toLocaleTimeString('zh-CN',{hour12:false}).slice(0,5), at:text.includes('@') });
+    inp.value = '';
+    renderChat();
+    if (chatDnd === 'all') { /* 全部屏蔽，不通知 */ }
+    else if (chatDnd === 'mute') { chatUnread++; showToast('新消息（免打扰模式，仅红点提示）','info'); }
+    else { showToast('消息发送成功','success'); }
+  }
+  function insertEmoji() {
+    const inp = document.getElementById('chat-input');
+    inp.value += '😊'; inp.focus();
+  }
+  function insertAt() {
+    const inp = document.getElementById('chat-input');
+    inp.value += '@王老师 '; inp.focus();
+  }
+  function sendImage() {
+    chatMsgs.push({ id:Date.now(), name:'我', role:'student', avatar:'我', type:'image', content:'课堂笔记.jpg', time:new Date().toLocaleTimeString('zh-CN',{hour12:false}).slice(0,5) });
+    renderChat();
+    showToast('图片已发送','success');
+  }
+  function sendFile() {
+    chatMsgs.push({ id:Date.now(), name:'我', role:'student', avatar:'我', type:'file', content:'我的作业.pdf', time:new Date().toLocaleTimeString('zh-CN',{hour12:false}).slice(0,5) });
+    renderChat();
+    showToast('文件已发送','success');
+  }
+  function recallMsg(id) {
+    const m = chatMsgs.find(x => x.id === id);
+    if (!m) return;
+    if (!confirm('确认撤回这条消息？')) return;
+    m.type = 'recalled';
+    renderChat();
+    showToast('消息已撤回','info');
+  }
+  document.querySelectorAll('#dnd-mode button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#dnd-mode button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      chatDnd = b.dataset.d;
+      chatUnread = 0;
+      renderChat();
+      showToast(chatDnd==='off'?'已开启消息提醒':chatDnd==='mute'?'免打扰模式：仅红点提示':'全部屏蔽模式','info');
+    });
+  });
+  renderChat();
+
+  // ============================================================
+  // Demo: Survey (question types / anon-real / scale / stats)
+  // ============================================================
+  const surveyBank = {
+    single: { title:'你对本课程的整体满意度？', opts:['非常满意','满意','一般','不满意'] },
+    multi:  { title:'你希望课程增加哪些环节？（多选）', opts:['更多案例分析','课堂讨论','课后答疑','实践项目'] },
+    scale:  { title:'请为本课程的教学质量打分（1-5分）' },
+    essay:  { title:'你对课程有什么建议？' },
+  };
+  let surveyState = { qt:'single', mode:'anon', scaleVal:0, submitted:false };
+
+  function renderSurvey() {
+    const q = surveyBank[surveyState.qt];
+    const c = document.getElementById('survey-q');
+    surveyState.submitted = false;
+    let body = '';
+    if (surveyState.qt === 'single') {
+      body = q.opts.map((o,i)=>`<label class="q-opt"><input type="radio" name="sv"> <span>${o}</span></label>`).join('');
+    } else if (surveyState.qt === 'multi') {
+      body = q.opts.map((o,i)=>`<label class="q-opt"><input type="checkbox"> <span>${o}</span></label>`).join('');
+    } else if (surveyState.qt === 'scale') {
+      body = `<div class="scale-bar" id="scale-bar">
+        ${[1,2,3,4,5].map(n=>`<div class="scale-opt" data-n="${n}">${n}</div>`).join('')}
+      </div><div style="font-size:12px;color:var(--text-muted)">1=很差 · 5=很好</div>`;
+    } else {
+      body = `<textarea class="q-essay" placeholder="请输入你的建议…"></textarea>`;
+    }
+    c.innerHTML = `<div class="q-card"><div class="q-title">${q.title}</div>${body}</div>`;
+
+    c.querySelectorAll('.q-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const input = opt.querySelector('input');
+        if (input.type === 'radio') { c.querySelectorAll('.q-opt input').forEach(i=>i.checked=false); input.checked=true; }
+        else { input.checked = !input.checked; }
+      });
+    });
+    c.querySelectorAll('.scale-opt').forEach(s => {
+      s.addEventListener('click', () => {
+        surveyState.scaleVal = Number(s.dataset.n);
+        c.querySelectorAll('.scale-opt').forEach(x=>x.classList.remove('on'));
+        s.classList.add('on');
+      });
+    });
+  }
+  document.querySelectorAll('#survey-qtype button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#survey-qtype button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      surveyState.qt = b.dataset.qt;
+      renderSurvey();
+    });
+  });
+  document.querySelectorAll('#survey-mode button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#survey-mode button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      surveyState.mode = b.dataset.m;
+      const badge = document.getElementById('anon-badge');
+      if (surveyState.mode === 'anon') {
+        badge.textContent = '匿名（不关联个人信息）';
+        badge.className = 'anon-badge anon';
+      } else {
+        badge.textContent = '实名（关联学号）';
+        badge.className = 'anon-badge real';
+      }
+    });
+  });
+  document.getElementById('btn-survey-submit').addEventListener('click', () => {
+    if (surveyState.submitted) return;
+    const stats = document.getElementById('survey-stats');
+    let detail = '';
+    const c = document.getElementById('survey-q');
+    if (surveyState.qt === 'single') {
+      const sel = c.querySelector('.q-opt input:checked');
+      if (!sel) { alert('请选择一个选项'); return; }
+      detail = `已提交：${sel.parentElement.querySelector('span').textContent}`;
+    } else if (surveyState.qt === 'multi') {
+      const sels = [...c.querySelectorAll('.q-opt input:checked')].map(i=>i.parentElement.querySelector('span').textContent);
+      if (!sels.length) { alert('请至少选择一项'); return; }
+      detail = `已提交：${sels.join('、')}`;
+    } else if (surveyState.qt === 'scale') {
+      if (!surveyState.scaleVal) { alert('请选择评分'); return; }
+      detail = `已提交：${surveyState.scaleVal} 分`;
+    } else {
+      const v = c.querySelector('textarea').value.trim();
+      if (!v) { alert('请输入建议'); return; }
+      detail = `已提交建议（${v.length}字）`;
+    }
+    surveyState.submitted = true;
+    stats.classList.add('show');
+    stats.innerHTML = `<strong>✓ 提交成功</strong> · ${surveyState.mode==='anon'?'匿名提交，不记录个人身份':'实名提交'} · ${detail} · 作答统计已计入问卷台账`;
+  });
+  renderSurvey();
+
+  // ============================================================
+  // Demo: Random pick (pool / rolling / refuse-note / ledger)
+  // ============================================================
+  const allStudents = [
+    { name:'张三', signed:true,  submitted:true  },
+    { name:'李四', signed:true,  submitted:false },
+    { name:'王五', signed:false, submitted:true  },
+    { name:'赵六', signed:true,  submitted:true  },
+    { name:'钱七', signed:false, submitted:false },
+    { name:'孙八', signed:true,  submitted:true  },
+    { name:'周九', signed:true,  submitted:false },
+    { name:'吴十', signed:false, submitted:true  },
+    { name:'郑十一', signed:true, submitted:true  },
+    { name:'冯十二', signed:true, submitted:true  },
+  ];
+  let pickState = { pool:'all', current:null, rolling:false, log:[] };
+
+  function poolStudents() {
+    if (pickState.pool === 'all') return allStudents;
+    if (pickState.pool === 'unsigned') return allStudents.filter(s => !s.signed);
+    return allStudents.filter(s => !s.submitted); // unsubmitted
+  }
+  function renderStudents() {
+    const grid = document.getElementById('student-grid');
+    const inPool = poolStudents();
+    grid.innerHTML = allStudents.map(s => {
+      const inP = inPool.includes(s);
+      return `<div class="stu-chip ${inP?'':'absent'}">${s.name}</div>`;
+    }).join('');
+  }
+  function renderLog() {
+    const list = document.getElementById('pick-log-list');
+    if (!pickState.log.length) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:12.5px;padding:8px">暂无抽选记录</div>';
+      return;
+    }
+    list.innerHTML = pickState.log.map(r => `
+      <div class="pick-log-item">
+        <span>${r.name} <small style="color:var(--text-muted)">· ${r.time}</small></span>
+        <span class="${r.status==='done'?'st-done':'st-refuse'}">${r.status==='done'?'✓ 已作答':'✗ 拒绝'}${r.note?' · 备注：'+r.note:''}</span>
+      </div>
+    `).join('');
+  }
+
+  document.querySelectorAll('#pick-pool button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#pick-pool button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      pickState.pool = b.dataset.pool;
+      renderStudents();
+    });
+  });
+
+  document.getElementById('btn-pick').addEventListener('click', () => {
+    if (pickState.rolling) return;
+    const pool = poolStudents();
+    if (!pool.length) { alert('当前抽选池无学生'); return; }
+    pickState.rolling = true;
+    const nameEl = document.getElementById('pick-name');
+    nameEl.classList.add('rolling');
+    document.getElementById('pick-result-actions').style.display = 'none';
+    document.getElementById('pick-note-input').style.display = 'none';
+    let ticks = 0;
+    const iv = setInterval(() => {
+      nameEl.textContent = pool[Math.floor(Math.random()*pool.length)].name;
+      ticks++;
+      if (ticks > 15) {
+        clearInterval(iv);
+        pickState.current = pool[Math.floor(Math.random()*pool.length)];
+        nameEl.textContent = pickState.current.name;
+        nameEl.classList.remove('rolling');
+        pickState.rolling = false;
+        document.getElementById('pick-result-actions').style.display = 'flex';
+        document.getElementById('pick-result-actions').style.gap = '8px';
+      }
+    }, 60);
+  });
+
+  document.getElementById('btn-accept').addEventListener('click', () => {
+    if (!pickState.current) return;
+    pickState.log.unshift({ name:pickState.current.name, time:new Date().toLocaleTimeString('zh-CN',{hour12:false}), status:'done', note:'' });
+    pickState.current = null;
+    document.getElementById('pick-result-actions').style.display = 'none';
+    renderLog();
+  });
+
+  document.getElementById('btn-refuse').addEventListener('click', () => {
+    if (!pickState.current) return;
+    const inp = document.getElementById('pick-note-input');
+    inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
+    if (inp.style.display === 'block') {
+      inp.focus();
+      inp.onkeydown = (e) => {
+        if (e.key === 'Enter' && inp.value.trim()) {
+          pickState.log.unshift({ name:pickState.current.name, time:new Date().toLocaleTimeString('zh-CN',{hour12:false}), status:'refuse', note:inp.value.trim() });
+          pickState.current = null;
+          inp.value = '';
+          inp.style.display = 'none';
+          document.getElementById('pick-result-actions').style.display = 'none';
+          renderLog();
+        }
+      };
+    }
+  });
+
+  renderStudents();
+  renderLog();
+
+  // ============================================================
+  // Demo: Lecturer carousel (cards / dots / modal / follow / expand)
+  // ============================================================
+  const lecturers = [
+    { id:1, name:'王建国', title:'教授 · 博导', avatar:'王',
+      bio:'计算机科学与技术学院教授，主要研究方向为数据结构与算法、分布式系统。主持国家级科研项目3项，发表SCI论文20余篇，获省级教学成果一等奖。',
+      research:['分布式系统','算法设计','数据库'],
+      courses:[{n:'数据结构',t:'local'},{n:'高级算法',t:'local'},{n:'分布式系统原理',t:'public'}],
+      followed:false },
+    { id:2, name:'李明华', title:'副教授', avatar:'李',
+      bio:'软件工程系副教授，专注于软件工程与项目管理教学，具有丰富的企业实践经验，曾主导多个大型软件项目的架构设计。',
+      research:['软件工程','软件架构','敏捷开发'],
+      courses:[{n:'软件工程',t:'local'},{n:'软件项目管理',t:'public'}],
+      followed:true },
+    { id:3, name:'张秀英', title:'讲师', avatar:'张',
+      bio:'计算机基础教学部讲师，主讲大学计算机基础与程序设计，教学风格生动活泼，深受学生喜爱，连续三年获评学生最喜爱教师。',
+      research:['计算机教育','程序设计入门'],
+      courses:[{n:'大学计算机基础',t:'local'},{n:'C语言程序设计',t:'local'}],
+      followed:false },
+    { id:4, name:'陈志强', title:'教授', avatar:'陈',
+      bio:'人工智能研究所教授，博士生导师，研究方向涵盖机器学习、自然语言处理与计算机视觉，在顶级会议发表论文多篇。',
+      research:['机器学习','自然语言处理','计算机视觉'],
+      courses:[{n:'人工智能导论',t:'local'},{n:'机器学习',t:'public'},{n:'深度学习',t:'public'}],
+      followed:false },
+  ];
+
+  function renderLecCards() {
+    const track = document.getElementById('lec-track');
+    track.innerHTML = lecturers.map(l => `
+      <div class="lecturer-card" data-id="${l.id}">
+        <div class="lec-avatar">${l.avatar}</div>
+        <div class="lec-name">${l.name}</div>
+        <div class="lec-title">${l.title}</div>
+        <div class="lec-bio" id="bio-${l.id}">${l.bio}</div>
+        <div class="lec-toggle" onclick="event.stopPropagation();toggleBio(${l.id},this)">展开</div>
+        <button class="lec-follow ${l.followed?'followed':''}" onclick="event.stopPropagation();toggleFollow(${l.id},this)">
+          ${l.followed?'已关注':'+ 关注'}
+        </button>
+      </div>
+    `).join('');
+    track.querySelectorAll('.lecturer-card').forEach(c => {
+      c.addEventListener('click', () => openLecModal(Number(c.dataset.id)));
+    });
+    renderLecDots();
+  }
+  let lecIndex = 0;
+  let lecProgrammatic = false; // 程序化滚动时跳过 scroll 事件的索引重算
+
+  function renderLecDots() {
+    const dots = document.getElementById('lec-dots');
+    dots.innerHTML = lecturers.map((_,i) => `<span data-i="${i}" class="${i===lecIndex?'active':''}"></span>`).join('');
+    dots.querySelectorAll('span').forEach(d => {
+      d.addEventListener('click', () => lecGoTo(Number(d.dataset.i)));
+    });
+  }
+  function lecGoTo(i) {
+    lecIndex = Math.max(0, Math.min(lecturers.length - 1, i));
+    const track = document.getElementById('lec-track');
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const target = maxScroll > 0 ? (lecIndex / (lecturers.length - 1)) * maxScroll : 0;
+    lecProgrammatic = true;
+    track.scrollTo({ left: target, behavior: 'smooth' });
+    document.querySelectorAll('#lec-dots span').forEach((d, idx) => d.classList.toggle('active', idx === lecIndex));
+    setTimeout(() => { lecProgrammatic = false; }, 500);
+  }
+  function lecScroll(dir) { lecGoTo(lecIndex + dir); }
+  document.getElementById('lec-track').addEventListener('scroll', () => {
+    if (lecProgrammatic) return; // 程序化滚动不覆盖索引
+    const track = document.getElementById('lec-track');
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    if (maxScroll > 0) {
+      const ratio = track.scrollLeft / maxScroll;
+      lecIndex = Math.round(ratio * (lecturers.length - 1));
+      document.querySelectorAll('#lec-dots span').forEach((d, i) => d.classList.toggle('active', i === lecIndex));
+    }
+  });
+  function toggleBio(id, el) {
+    const bio = document.getElementById('bio-'+id);
+    bio.classList.toggle('expanded');
+    el.textContent = bio.classList.contains('expanded') ? '收起' : '展开';
+  }
+  function toggleFollow(id, btn) {
+    const l = lecturers.find(x => x.id === id);
+    l.followed = !l.followed;
+    btn.classList.toggle('followed', l.followed);
+    btn.textContent = l.followed ? '已关注' : '+ 关注';
+  }
+  function openLecModal(id) {
+    const l = lecturers.find(x => x.id === id);
+    const body = document.getElementById('lec-modal-body');
+    body.innerHTML = `
+      <div style="text-align:center;margin-bottom:12px">
+        <div class="lec-avatar" style="width:72px;height:72px;font-size:30px;margin:0 auto 8px">${l.avatar}</div>
+        <div style="font-weight:600;font-size:18px">${l.name}</div>
+        <div style="color:var(--text-muted);font-size:13px">${l.title}</div>
+      </div>
+      <div style="font-size:13px;margin-bottom:10px"><strong>个人履历：</strong>${l.bio}</div>
+      <div style="font-size:13px;margin-bottom:10px"><strong>研究方向：</strong>${l.research.map(r=>`<span class="lec-course-tag local">${r}</span>`).join('')}</div>
+      <div style="font-size:13px;margin-bottom:10px"><strong>开设课程：</strong><br>
+        ${l.courses.map(c=>`<span class="lec-course-tag ${c.t}">${c.t==='local'?'本校':'公开'} · ${c.n}</span>`).join('')}
+      </div>
+      <div style="font-size:13px;margin-bottom:12px"><strong>公开课件：</strong>课件资源库（点击跳转下载）</div>
+      <button class="demo-btn primary" style="width:100%" onclick="closeLecModal()">关闭</button>
+    `;
+    document.getElementById('lec-modal').classList.add('show');
+  }
+  function closeLecModal() { document.getElementById('lec-modal').classList.remove('show'); }
+  document.getElementById('lec-modal').addEventListener('click', e => {
+    if (e.target.id === 'lec-modal') closeLecModal();
+  });
+  renderLecCards();
+
+  // ============================================================
+  // Demo: Points rule (behavior score / caps / ledger / export)
+  // ============================================================
+  let ptsState = { current:0, log:[] };
+
+  function ptsCfg() {
+    return {
+      signin: Number(document.getElementById('pts-signin').value) || 0,
+      practice: Number(document.getElementById('pts-practice').value) || 0,
+      pick: Number(document.getElementById('pts-pick').value) || 0,
+      singleCap: Number(document.getElementById('pts-single-cap').value) || 0,
+      totalCap: Number(document.getElementById('pts-total-cap').value) || 0,
+      enabled: document.getElementById('pts-enable').checked,
+    };
+  }
+  function renderPts() {
+    const cfg = ptsCfg();
+    document.getElementById('pts-cap-show').textContent = cfg.totalCap;
+    document.getElementById('pts-current').textContent = ptsState.current;
+    const pct = cfg.totalCap > 0 ? Math.min(100, ptsState.current / cfg.totalCap * 100) : 0;
+    document.getElementById('pts-bar-fill').style.width = pct + '%';
+    const tb = document.querySelector('#pts-ledger tbody');
+    tb.innerHTML = ptsState.log.length
+      ? ptsState.log.map(r => `<tr><td>${r.action}</td><td>+${r.score}</td><td>${r.total}</td><td>${r.time}</td></tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">暂无学分记录</td></tr>';
+  }
+  function addPoints(action, raw) {
+    const cfg = ptsCfg();
+    if (!cfg.enabled) { alert('课程学分功能未开启，无法累计学分'); return; }
+    // 单次分值上限截断
+    let score = Math.min(raw, cfg.singleCap);
+    // 总分上限截断
+    if (ptsState.current + score > cfg.totalCap) {
+      score = cfg.totalCap - ptsState.current;
+    }
+    if (score <= 0) { alert('已达课程学分总分上限，无法继续累计'); return; }
+    ptsState.current += score;
+    ptsState.log.unshift({ action, score, total: ptsState.current, time: new Date().toLocaleTimeString('zh-CN',{hour12:false}) });
+    renderPts();
+  }
+  function exportPts() {
+    alert(`模拟导出学分台账（Excel）：\n共 ${ptsState.log.length} 条记录，累计 ${ptsState.current} 学分`);
+  }
+  ['pts-signin','pts-practice','pts-pick','pts-single-cap','pts-total-cap'].forEach(id => {
+    document.getElementById(id).addEventListener('input', renderPts);
+  });
+  document.getElementById('pts-enable').addEventListener('change', renderPts);
+  renderPts();
+
+  // ============================================================
+  // Global: Toast container + showToast utility
+  // ============================================================
+  const toastC = document.createElement('div');
+  toastC.className = 'toast-container';
+  document.body.appendChild(toastC);
+  function showToast(msg, type='info') {
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    toastC.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; }, 2200);
+    setTimeout(() => t.remove(), 2600);
+  }
+
+  // ============================================================
+  // Demo: Task management (state machine + filter + detail + schedule)
+  // ============================================================
+  let taskFilter = 'all';
+  const typeIcon = { '签到':'✅', '练习':'📝', '问卷':'📋' };
+  const taskData = [
+    { id:1, title:'第8周签到', type:'签到', status:'active', time:'2026-11-17 08:00', total:40, completed:35 },
+    { id:2, title:'数据结构随堂练习', type:'练习', status:'pending', time:'2026-11-18 10:00（定时）', total:40, completed:0 },
+    { id:3, title:'课程满意度问卷', type:'问卷', status:'ended', time:'2026-11-15 ~ 11-16', total:40, completed:32 },
+    { id:4, title:'第7周签到', type:'签到', status:'withdrawn', time:'2026-11-10', total:40, completed:12 },
+  ];
+  const statusMap = {
+    pending: { cls:'ts-pending', text:'待发布' },
+    active:  { cls:'ts-active',  text:'进行中' },
+    ended:   { cls:'ts-ended',   text:'已结束' },
+    withdrawn:{ cls:'ts-withdrawn', text:'已撤回' },
+  };
+  function renderTaskStats() {
+    document.getElementById('ts-pending').textContent = taskData.filter(t=>t.status==='pending').length;
+    document.getElementById('ts-active').textContent = taskData.filter(t=>t.status==='active').length;
+    document.getElementById('ts-ended').textContent = taskData.filter(t=>t.status==='ended').length;
+    document.getElementById('ts-withdrawn').textContent = taskData.filter(t=>t.status==='withdrawn').length;
+  }
+  function renderTasks() {
+    const list = taskData.filter(t => taskFilter==='all' || t.type===taskFilter);
+    document.getElementById('task-list').innerHTML = list.length ? list.map(t => {
+      const rate = t.total ? Math.round(t.completed/t.total*100) : 0;
+      return `
+      <div class="task-card">
+        <div class="task-head" onclick="openTaskDetail(${t.id})" style="cursor:pointer">
+          <span class="task-title">${typeIcon[t.type]} ${t.title}</span>
+          <span class="task-status ${statusMap[t.status].cls}">${statusMap[t.status].text}</span>
+        </div>
+        <div class="task-meta">${t.time} · 参与 ${t.completed}/${t.total} 人</div>
+        <div class="pts-bar" style="margin:6px 0"><div class="pts-bar-fill" style="width:${rate}%"></div></div>
+        <div class="task-actions">
+          ${t.status==='pending' ? `<button class="demo-btn" onclick="event.stopPropagation();taskAct(${t.id},'publish')">立即发布</button><button class="demo-btn danger" onclick="event.stopPropagation();taskAct(${t.id},'withdraw')">撤回</button>` : ''}
+          ${t.status==='active' ? `<button class="demo-btn" onclick="event.stopPropagation();taskAct(${t.id},'end')">提前结束</button><button class="demo-btn danger" onclick="event.stopPropagation();taskAct(${t.id},'withdraw')">撤回</button>` : ''}
+          ${(t.status==='ended'||t.status==='withdrawn') ? `<button class="demo-btn" onclick="event.stopPropagation();openTaskDetail(${t.id})">查看详情</button>` : ''}
+        </div>
+      </div>`;
+    }).join('') : '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px">该分类下暂无任务</div>';
+    renderTaskStats();
+  }
+  function taskAct(id, act) {
+    const t = taskData.find(x => x.id === id);
+    if (act === 'publish') {
+      if (!confirm(`确认立即发布「${t.title}」？发布后学生可开始作答。`)) return;
+      t.status = 'active'; showToast('任务已发布，学生可开始作答','success');
+    }
+    if (act === 'end') {
+      if (!confirm(`确认提前结束「${t.title}」？结束后学生无法继续作答。`)) return;
+      t.status = 'ended'; showToast('任务已提前结束','info');
+    }
+    if (act === 'withdraw') {
+      if (!confirm(`⚠️ 确认撤回「${t.title}」？撤回后学生无法继续作答，已提交数据保留。`)) return;
+      t.status = 'withdrawn'; showToast('任务已撤回，学生无法继续作答','warning');
+    }
+    renderTasks();
+  }
+  function openTaskDetail(id) {
+    const t = taskData.find(x => x.id === id);
+    const rate = t.total ? Math.round(t.completed/t.total*100) : 0;
+    document.getElementById('task-detail-body').innerHTML = `
+      <h4 style="margin:0 0 6px">${typeIcon[t.type]} ${t.title}</h4>
+      <div style="margin-bottom:10px">
+        <span class="task-status ${statusMap[t.status].cls}">${statusMap[t.status].text}</span>
+        <span style="color:var(--text-muted);font-size:12px;margin-left:8px">${t.time}</span>
+      </div>
+      <div style="font-size:13px;margin-bottom:6px">完成进度：${t.completed}/${t.total} 人（${rate}%）</div>
+      <div class="pts-bar"><div class="pts-bar-fill" style="width:${rate}%"></div></div>
+      <div style="margin-top:14px;font-size:13px">
+        <strong>学生完成台账：</strong>
+        ${Array.from({length:Math.min(8,t.total)},(_,i)=>`
+          <div class="signin-row">
+            <span>学生${String(i+1).padStart(2,'0')}</span>
+            <span class="${i<t.completed?'badge-signed':'badge-unsigned'}">${i<t.completed?'✓ 已完成':'✗ 未完成'}</span>
+          </div>`).join('')}
+        ${t.total>8?`<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:6px">共 ${t.total} 人，仅展示前 8 人</div>`:''}
+      </div>
+      <button class="demo-btn" style="width:100%;margin-top:10px" onclick="showToast('任务详情已导出','success')">导出完成台账</button>
+    `;
+    document.getElementById('task-detail-modal').classList.add('show');
+  }
+  function closeTaskDetail() { document.getElementById('task-detail-modal').classList.remove('show'); }
+  document.getElementById('task-detail-modal').addEventListener('click', e => {
+    if (e.target.id === 'task-detail-modal') closeTaskDetail();
+  });
+  document.querySelectorAll('#task-filter .demo-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#task-filter .demo-tab').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      taskFilter = b.dataset.f;
+      renderTasks();
+    });
+  });
+  function openScheduleModal() { document.getElementById('schedule-modal').classList.add('show'); }
+  function closeScheduleModal() { document.getElementById('schedule-modal').classList.remove('show'); }
+  document.getElementById('schedule-modal').addEventListener('click', e => {
+    if (e.target.id === 'schedule-modal') closeScheduleModal();
+  });
+  function confirmSchedule() {
+    const title = document.getElementById('sch-title').value.trim();
+    const type = document.getElementById('sch-type').value;
+    const time = document.getElementById('sch-time').value.replace('T',' ');
+    const dur = document.getElementById('sch-duration').value;
+    if (!title) { alert('请输入任务名称'); return; }
+    taskData.unshift({
+      id: Date.now(), title, type, status:'pending',
+      time:`${time}（定时，有效${dur}分钟）`, total:40, completed:0
+    });
+    closeScheduleModal();
+    renderTasks();
+    showToast(`定时任务「${title}」已创建，将于 ${time} 自动发布`,'success');
+  }
+  renderTasks();
+
+  // ============================================================
+  // Demo: Data view (sign-in ledger + stats)
+  // ============================================================
+  const signinData = [
+    { name:'张三', signed:true,  time:'08:02' },
+    { name:'李四', signed:true,  time:'08:05' },
+    { name:'王五', signed:false, time:'—' },
+    { name:'赵六', signed:true,  time:'08:01' },
+    { name:'钱七', signed:false, time:'—' },
+    { name:'孙八', signed:true,  time:'08:03' },
+    { name:'周九', signed:false, time:'—' },
+    { name:'吴十', signed:true,  time:'08:04' },
+    { name:'郑十一', signed:true, time:'08:06' },
+    { name:'冯十二', signed:true, time:'08:07' },
+  ];
+  function renderSignin() {
+    document.getElementById('signin-list').innerHTML = signinData.map(s => `
+      <div class="signin-row">
+        <span>${s.name}</span>
+        <span>${s.time}</span>
+        <span class="${s.signed?'badge-signed':'badge-unsigned'}">${s.signed?'✓ 已签到':'✗ 未签到'}</span>
+      </div>
+    `).join('');
+    const signed = signinData.filter(s => s.signed).length;
+    const total = signinData.length;
+    document.getElementById('stat-signed').textContent = signed;
+    document.getElementById('stat-unsigned').textContent = total - signed;
+    document.getElementById('stat-rate').textContent = Math.round(signed/total*100) + '%';
+  }
+  renderSignin();
+
+  // ============================================================
+  // Demo: Mine page (student/teacher role switch)
+  // ============================================================
+  const mineEntries = {
+    student: [
+      { icon:'🪙', name:'我的金币' },
+      { icon:'📝', name:'我的笔记' },
+      { icon:'📚', name:'我的课程' },
+      { icon:'⭐', name:'我的学分' },
+      { icon:'👥', name:'关注列表' },
+      { icon:'⚙️', name:'设置' },
+    ],
+    teacher: [
+      { icon:'📖', name:'我教授的课程' },
+      { icon:'📋', name:'我的题库' },
+      { icon:'📝', name:'互动任务管理' },
+      { icon:'⭐', name:'学分总览' },
+      { icon:'👤', name:'讲师主页管理' },
+      { icon:'⚙️', name:'设置' },
+    ],
+  };
+  function renderMine(role) {
+    document.getElementById('mine-avatar').textContent = role === 'student' ? '学' : '教';
+    document.getElementById('mine-id').textContent = role === 'student' ? '学号：2026001' : '工号：T2023008';
+    const tag = document.getElementById('mine-role-tag');
+    tag.textContent = role === 'student' ? '学生' : '教师';
+    tag.className = 'mine-role-tag ' + role;
+    document.getElementById('mine-grid').innerHTML = mineEntries[role].map(e => `
+      <div class="mine-entry" onclick="showToast('进入「${e.name}」','info')"><span class="icon">${e.icon}</span>${e.name}</div>
+    `).join('');
+  }
+  document.querySelectorAll('#mine-switch button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#mine-switch button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      renderMine(b.dataset.role);
+    });
+  });
+  renderMine('student');
+
+  // ----- Message center -----
+  let msgFilter = 'all';
+  let messages = [
+    { id:1, type:'系统通知', icon:'🔔', title:'系统维护通知', content:'平台将于本周日凌晨2:00-4:00进行系统维护，期间服务暂停。', time:'今天 09:00', read:false },
+    { id:2, type:'上课提醒', icon:'📅', title:'明日课程提醒', content:'《数据结构》第9周课程，明天 08:00 在教学楼 A301 上课。', time:'今天 08:30', read:false },
+    { id:3, type:'签到提醒', icon:'✅', title:'签到任务已发布', content:'王老师发布了第8周课堂签到，请在 30 分钟内完成。', time:'今天 08:05', read:false },
+    { id:4, type:'作业批阅', icon:'📝', title:'随堂练习已批阅', content:'你的《数据结构随堂练习》得分 85 分，查看批阅详情。', time:'昨天 16:20', read:true },
+    { id:5, type:'充值订单', icon:'🪙', title:'金币充值成功', content:'充值 100 元，获得 1000 金币，当前余额 1120 金币。', time:'昨天 14:00', read:true },
+    { id:6, type:'举报反馈', icon:'⚠️', title:'举报处理结果', content:'您举报的违规内容已审核处理，感谢您的反馈。', time:'3天前', read:true },
+  ];
+  const typeColor = { '系统通知':'#f1f5f9','上课提醒':'#dbeafe','签到提醒':'#dcfce7','作业批阅':'#fef3c7','充值订单':'#ede9fe','举报反馈':'#fee2e2' };
+  function renderMessages() {
+    const list = document.getElementById('msg-list');
+    const filtered = msgFilter==='all' ? messages : messages.filter(m => m.type===msgFilter);
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div>暂无消息</div></div>';
+      return;
+    }
+    list.innerHTML = filtered.map(m => `
+      <div class="msg-item ${m.read?'':'unread'}" onclick="readMsg(${m.id})">
+        <div class="msg-icon" style="background:${typeColor[m.type]}">${m.icon}</div>
+        <div class="msg-body">
+          <div class="msg-head">
+            <span class="msg-type">${m.type} ${m.read?'':'<span class="unread-dot" style="vertical-align:middle"></span>'}</span>
+            <span class="msg-time">${m.time}</span>
+          </div>
+          <div class="msg-content">${m.title}：${m.content}</div>
+        </div>
+        <button class="demo-btn danger msg-del" style="font-size:11px;padding:2px 8px" onclick="event.stopPropagation();delMsg(${m.id})">删除</button>
+      </div>
+    `).join('');
+  }
+  function readMsg(id) {
+    const m = messages.find(x => x.id === id);
+    if (m && !m.read) { m.read = true; renderMessages(); showToast('已标记为已读','info'); }
+  }
+  function delMsg(id) {
+    messages = messages.filter(x => x.id !== id);
+    renderMessages();
+    showToast('消息已删除','info');
+  }
+  function markAllRead() {
+    const unread = messages.filter(m => !m.read).length;
+    if (!unread) { showToast('没有未读消息','info'); return; }
+    messages.forEach(m => m.read = true);
+    renderMessages();
+    showToast(`已将 ${unread} 条消息标记为已读`,'success');
+  }
+  document.querySelectorAll('#msg-filter button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#msg-filter button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      msgFilter = b.dataset.f;
+      renderMessages();
+    });
+  });
+  renderMessages();
+
+  // ============================================================
+  // Demo: Storage security (upload → compress → audit)
+  // ============================================================
+  let isOffline = false;
+  function simulateUpload(type) {
+    const fill = document.getElementById('upload-fill');
+    const steps = document.getElementById('audit-steps');
+    fill.style.width = '0%';
+    steps.innerHTML = '';
+
+    if (type === 'oversize') {
+      showToast('文件超出大小上限（图片10MB/文件50MB）','error');
+      steps.innerHTML = `<div class="audit-step block"><span class="step-icon no">✕</span>大小校验未通过：文件 12MB > 上限 10MB</div>`;
+      return;
+    }
+
+    // 进度条
+    let p = 0;
+    const iv = setInterval(() => {
+      p += 20;
+      fill.style.width = p + '%';
+      if (p >= 100) {
+        clearInterval(iv);
+        runAudit(type);
+      }
+    }, 120);
+  }
+  function runAudit(type) {
+    const steps = document.getElementById('audit-steps');
+    const items = [
+      { t:'大小校验通过', icon:'ok' },
+      { t:'图片自动压缩（8.2MB → 1.3MB）', icon:'ok' },
+      { t:'内容审核：' + (type==='pass' ? '通过' : '检测到违规内容，已屏蔽'), icon: type==='pass'?'ok':'no' },
+    ];
+    items.forEach((it, i) => {
+      setTimeout(() => {
+        const div = document.createElement('div');
+        div.className = 'audit-step ' + (it.icon==='ok'?'pass':'block');
+        div.innerHTML = `<span class="step-icon ${it.icon}">${it.icon==='ok'?'✓':'✕'}</span>${it.t}`;
+        steps.appendChild(div);
+        if (i === items.length - 1) {
+          showToast(type==='pass' ? '上传成功，资源已发布' : '上传失败：内容审核未通过', type==='pass'?'success':'error');
+        }
+      }, i * 400);
+    });
+  }
+
+  // ============================================================
+  // Demo: Exception feedback (network toggle + offline save)
+  // ============================================================
+  function toggleNet() {
+    isOffline = !isOffline;
+    const banner = document.getElementById('net-banner');
+    banner.classList.toggle('online', !isOffline);
+    document.getElementById('net-text').textContent = isOffline ? '弱网/离线模式：内容将本地保存' : '网络正常';
+    document.getElementById('save-hint').textContent = isOffline
+      ? '离线保存中，网络恢复后自动同步'
+      : '实时自动保存到云端';
+    showToast(isOffline ? '已切换为离线模式' : '网络已恢复，正在同步', isOffline?'warning':'success');
+  }
+  document.getElementById('offline-note').addEventListener('input', () => {
+    document.getElementById('save-hint').textContent = isOffline
+      ? '离线保存中，网络恢复后自动同步'
+      : '正在保存…';
+    clearTimeout(window._saveT);
+    window._saveT = setTimeout(() => {
+      document.getElementById('save-hint').textContent = isOffline
+        ? '已保存到本地，网络恢复后同步'
+        : '已保存到云端 · ' + new Date().toLocaleTimeString('zh-CN',{hour12:false});
+    }, 600);
+  });
+</script>
+</body>
+</html>
