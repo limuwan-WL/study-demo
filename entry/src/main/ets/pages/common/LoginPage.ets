@@ -1,9 +1,11 @@
 import router from '@ohos.router';
 import { promptAction } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 import { MessageCenter } from '../../model/MessageCenterModel';
+import { AccountStore, AuthResult } from '../../model/AccountStore';
 
-// 🌟 输入阶段过滤：账号只允许汉字/数字，密码只允许字母/数字/下划线
-const ACCOUNT_FILTER: string = '[0-9\\u4e00-\\u9fa5]'
+// 🌟 输入阶段过滤：学号/教工号只允许字母和数字，密码只允许字母/数字/下划线
+const ACCOUNT_FILTER: string = '[A-Za-z0-9]'
 const PASSWORD_FILTER: string = '[A-Za-z0-9_]'
 
 // 🌟 启动登录/注册页：未登录时应用首页即是它；身份验证完成前不提供任何跳过入口
@@ -23,8 +25,11 @@ struct LoginPage {
   @State mode: string = 'login' // login / register
   @State inputAccount: string = ''
   @State inputPassword: string = ''
+  @State submitting: boolean = false
 
   aboutToAppear() {
+    // 🌟 账号数据库初始化（幂等）：学号 / 教工号与密码哈希保存在本地 SQLite 表 user_account
+    AccountStore.init(getContext(this) as common.UIAbilityContext)
     // 🌟 记住我：已注册且勾选时自动填充，实现快速登录
     if (this.rememberMe && this.regAccount !== '') {
       this.inputAccount = this.regAccount
@@ -38,11 +43,12 @@ struct LoginPage {
       && this.inputAccount.trim() === this.regAccount && this.inputPassword.trim() === this.regPassword
   }
 
-  // 🌟 账号规则：只能是中文汉字姓名，或 11 位手机号
+  // 🌟 账号规则：学生为学号（6-20 位数字），教师/助教为教工号（4-20 位字母或数字）
   isValidAccount(acc: string): boolean {
-    let chinese = new RegExp('^[\\u4e00-\\u9fa5]{1,20}$')
-    let phone = new RegExp('^1[3-9][0-9]{9}$')
-    return chinese.test(acc) || phone.test(acc)
+    if (this.userRole === 'student') {
+      return new RegExp('^[0-9]{6,20}$').test(acc)
+    }
+    return new RegExp('^[A-Za-z0-9]{4,20}$').test(acc)
   }
 
   // 🌟 密码规则：至少 8 位，只能由字母、数字、下划线组成
@@ -70,30 +76,38 @@ struct LoginPage {
     }
   }
 
-  // 注册：本机只保存一个账号（演示用），成功后自动登录并进入主页
-  register() {
+  // 注册：学号 / 教工号写入本地数据库表 user_account，成功后自动登录并进入主页
+  async register(): Promise<void> {
+    if (this.submitting) {
+      return
+    }
     let acc = this.inputAccount.trim()
     let pwd = this.inputPassword.trim()
     if (acc === '' || pwd === '') {
-      promptAction.showToast({ message: '账号和密码不能为空' })
+      promptAction.showToast({ message: '学号/教工号和密码不能为空' })
       return
     }
     if (!this.isValidAccount(acc)) {
-      promptAction.showToast({ message: '账号仅支持中文姓名或 11 位手机号' })
+      promptAction.showToast({
+        message: this.userRole === 'student' ? '学号为 6-20 位数字' : '教工号为 4-20 位字母或数字'
+      })
       return
     }
     if (!this.isValidPassword(pwd)) {
       promptAction.showToast({ message: '密码至少 8 位，仅可包含字母、数字、下划线' })
       return
     }
-    if (this.regAccount !== '') {
-      promptAction.showToast({ message: `本机已注册过 ${this.regAccount}，请直接登录` })
+    this.submitting = true
+    let res: AuthResult = await AccountStore.register(acc, pwd, this.userRole, acc)
+    this.submitting = false
+    if (!res.ok) {
+      promptAction.showToast({ message: res.message })
       return
     }
+    // 🌟 登录名即学号/教工号：注册成功后作为昵称，并保持全局状态同步
     this.regAccount = acc
     this.regPassword = pwd
     this.regRole = this.userRole
-    // 🌟 登录名即昵称：注册成功后昵称直接使用注册账号，并随昵称一起持久化
     this.nickname = acc
     this.isLogged = true
     // 🌟 进入当前身份的消息作用域：教师/学生各自一份，互不可见
@@ -113,36 +127,53 @@ struct LoginPage {
     return '学生'
   }
 
-  login() {
+  async login(): Promise<void> {
+    if (this.submitting) {
+      return
+    }
     let acc = this.inputAccount.trim()
     let pwd = this.inputPassword.trim()
     if (acc === '' || pwd === '') {
-      promptAction.showToast({ message: '账号和密码不能为空' })
+      promptAction.showToast({ message: '学号/教工号和密码不能为空' })
       return
     }
     if (!this.isValidAccount(acc)) {
-      promptAction.showToast({ message: '账号仅支持中文姓名或 11 位手机号' })
+      promptAction.showToast({
+        message: this.userRole === 'student' ? '学号为 6-20 位数字' : '教工号为 4-20 位字母或数字'
+      })
       return
     }
     if (!this.isValidPassword(pwd)) {
       promptAction.showToast({ message: '密码至少 8 位，仅可包含字母、数字、下划线' })
       return
     }
-    if (this.regAccount === '' || acc !== this.regAccount || pwd !== this.regPassword) {
-      promptAction.showToast({ message: '账号不存在或密码错误' })
+    this.submitting = true
+    let res: AuthResult = await AccountStore.login(acc, pwd)
+    // 🌟 老版本单账号数据迁移：库里没有但与本机记住的账号密码一致时，补登记后继续登录
+    if (!res.ok && res.code === 'not_found' && this.regAccount === acc && this.regPassword === pwd) {
+      res = await AccountStore.register(acc, pwd, this.regRole === '' ? this.userRole : this.regRole, acc)
+    }
+    this.submitting = false
+    if (!res.ok) {
+      promptAction.showToast({ message: res.message })
       return
     }
     // 🌟 一个账号只绑定一种身份：选错身份不允许登录，避免同一账号师生身份混用
-    if (this.regRole !== '' && this.userRole !== this.regRole) {
+    if (res.account !== null && res.account.role !== this.userRole) {
       promptAction.showToast({
-        message: `该账号为${this.roleLabel(this.regRole)}身份，请切换对应身份后登录`
+        message: `该账号为${this.roleLabel(res.account.role)}身份，请切换对应身份后登录`
       })
       return
     }
-    // 🌟 按注册时绑定的身份进入，未绑定过则按当前选择
-    this.userRole = this.regRole === '' ? this.userRole : this.regRole
-    // 🌟 登录名即昵称：登录后用已注册账号作为昵称（历史数据兜底到本次输入账号）
-    this.nickname = this.regAccount !== '' ? this.regAccount : acc
+    // 🌟 按数据库中绑定的身份进入
+    let role: string = res.account !== null ? res.account.role : this.userRole
+    this.userRole = role
+    this.regAccount = acc
+    this.regPassword = pwd
+    this.regRole = role
+    // 🌟 登录名即昵称：昵称优先取库里的昵称，历史数据兜底到本次输入账号
+    let nick: string = res.account !== null ? res.account.nickname : ''
+    this.nickname = nick !== '' ? nick : acc
     this.isLogged = true
     // 🌟 进入当前身份的消息作用域：教师/学生各自一份，互不可见
     MessageCenter.activateScope()
@@ -234,7 +265,7 @@ struct LoginPage {
 
           Row({ space: 10 }) {
             SymbolGlyph($r('sys.symbol.person')).fontSize(18).fontColor([$r('app.color.text_hint')])
-            TextInput({ text: this.inputAccount, placeholder: '中文姓名或手机号' })
+            TextInput({ text: this.inputAccount, placeholder: '学号 / 教工号' })
               .backgroundColor(Color.Transparent).height(44).fontSize(15)
               .inputFilter(ACCOUNT_FILTER)
               .onChange((v: string) => this.inputAccount = v).layoutWeight(1)
@@ -279,7 +310,7 @@ struct LoginPage {
               }
             })
 
-          Text('本机注册一个账号即可使用，数据保存在本地')
+          Text('学号 / 教工号保存在本地数据库，可注册多个账号')
             .fontSize(11).fontColor($r('app.color.text_hint'))
         }
         .width('88%')

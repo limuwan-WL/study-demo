@@ -1,6 +1,7 @@
 import router from '@ohos.router'
 import { promptAction } from '@kit.ArkUI'
 import { ThemeColor } from '../../utils/ThemeColor'
+import { AccountStore } from '../../model/AccountStore'
 
 // 🌟 密码输入过滤：与登录页保持一致，只允许字母/数字/下划线
 const PASSWORD_FILTER: string = '[A-Za-z0-9_]'
@@ -88,7 +89,7 @@ export struct ChangePasswordPage {
     return ''
   }
 
-  submit() {
+  async submit(): Promise<void> {
     if (!this.isLogged) {
       promptAction.showToast({ message: '请先登录后再修改密码' })
       return
@@ -105,6 +106,12 @@ export struct ChangePasswordPage {
     }
     // 🌟 修改成功：直接更新注册密码，PersistentStorage 已持久化该字段，重启不丢失
     this.regPassword = this.newPassword
+    // 🌟 同步更新账号数据库中的密码哈希，保证下次用新密码登录能校验通过
+    let updated: boolean = await AccountStore.changePassword(this.regAccount, this.newPassword)
+    if (!updated) {
+      promptAction.showToast({ message: '密码已在本机更新，但数据库同步失败，请重新登录后再试' })
+      return
+    }
     promptAction.showToast({ message: '密码修改成功' })
     router.back()
   }

@@ -13,9 +13,12 @@ import { BankQuestion } from '../model/QuestionBankModel';
 import { ResourceItem } from '../model/ResourceModel';
 import { MessageCenter } from '../model/MessageCenterModel';
 import { TeacherReview } from '../model/ReviewModel';
+import { AccountStore } from '../model/AccountStore';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    // 🌟 账号数据库（学号 / 教工号注册登录）初始化，表结构在 AccountStore 中创建
+    AccountStore.init(this.context)
     // 🌟 本地持久化（等价于 H5 的 localStorage）：写入磁盘，重启应用数据不丢失
     // 注意：persistProp 会自动读取磁盘上的旧值，不能用 setOrCreate 覆盖
     PersistentStorage.persistProp<TodoItem[]>('todoList', []);
