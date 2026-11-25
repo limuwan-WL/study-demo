@@ -435,7 +435,7 @@ export struct ProfilePage {
           .backgroundColor($r('app.color.card_bg'))
           .borderRadius(18)
 
-          Text('账号与资料均保存在本机（无真实后端），清除本地数据后不可恢复')
+          Text('账号数据保存在服务器数据库，清除本地数据不会删除已注册账号')
             .fontSize(10).fontColor($r('app.color.text_hint'))
             .width('100%').padding({ left: 4, top: 2 })
         }
